@@ -17,6 +17,23 @@ const ApiService = {
     return { data, error, loading };
   },
 
+  getUserSettings: async () => {
+    const { data, loading, error } = await AxiosClient({
+      method: 'GET',
+      url: `user/settings`
+    });
+    return { data, error, loading };
+  },
+
+  updateUserSettings: async ({ theme, voice }) => {
+    const { data, loading, error } = await AxiosClient({
+      method: 'POST',
+      url: `user/settings`,
+      data: { theme, voice }
+    });
+    return { data, error, loading };
+  },
+
    register: async (payload) => {
     const { data, loading, error } = await AxiosClient({
       method: "POST",
@@ -43,6 +60,32 @@ const ApiService = {
       data:payload
     });
     
+    return { data, error, loading };
+  },
+
+  saveHistory: async (namespace_id, messages) => {
+    const { data, loading, error } = await AxiosClient({
+      method: "POST",
+      url: `chat-bot/history`,
+      data: { namespace_id, messages }
+    });
+    return { data, error, loading };
+  },
+
+  getHistory: async (namespace_id) => {
+    const { data, loading, error } = await AxiosClient({
+      method: "GET",
+      url: `chat-bot/history?namespace_id=${encodeURIComponent(namespace_id)}`,
+    });
+    return { data, error, loading };
+  },
+
+  saveHistoryPdf: async (namespace_id, messages) => {
+    const { data, loading, error } = await AxiosClient({
+      method: "POST",
+      url: `chat-bot/history/pdf`,
+      data: { namespace_id, messages }
+    });
     return { data, error, loading };
   },
 
@@ -85,6 +128,14 @@ const ApiService = {
     return { data, error, loading };
   },
 
+  resetInterview: async (namespace_id) => {
+    const { data, loading, error } = await AxiosClient({
+      method: 'POST',
+      url: `chat-bot/reset`,
+      data: { namespace_id }
+    });
+    return { data, error, loading };
+  },
   
 };
 

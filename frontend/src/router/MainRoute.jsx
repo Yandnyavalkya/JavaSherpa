@@ -26,9 +26,9 @@ const MainRoute = () => {
         <Route
           path="/default"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <Default />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="bot-list" />} />

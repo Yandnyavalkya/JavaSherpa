@@ -83,17 +83,20 @@ const BotList = () => {
         <div className="col-lg-8">
           <div className="card shadow-sm p-4  rounded-4 mb-3">
             <h4 className="fw-bold mb-3 text-center text-primary">
-              🤖 Create a New Chatbot
+              🎤 Create a New Interview Session
             </h4>
+            <p className="text-center text-muted mb-4 small">
+              Set up a new interview preparation session to practice Java interviews with voice commands
+            </p>
 
             <form>
               <div className="mb-3">
-                <label className="form-label fw-semibold">Bot Name</label>
+                <label className="form-label fw-semibold">Session Name</label>
                 <input
                   type="text"
                   name="bot_name"
                   className="form-control form-control-lg"
-                  placeholder="Enter bot name"
+                  placeholder="Enter session name (e.g., Java Fundamentals, Spring Boot, etc.)"
                   value={formData.bot_name}
                   onChange={handleChange}
                 />
@@ -105,7 +108,7 @@ const BotList = () => {
                   name="description"
                   className="form-control form-control-lg"
                   rows="2"
-                  placeholder="Enter bot description"
+                  placeholder="Enter session description (e.g., Core Java concepts, Design patterns, etc.)"
                   value={formData.description}
                   onChange={handleChange}
                 ></textarea>
@@ -125,21 +128,21 @@ const BotList = () => {
                       role="status"
                       aria-hidden="true"
                     ></span>
-                    Saving...
+                    Creating...
                   </>
                 ) : (
-                  "Create Bot"
+                  "Create Interview Session"
                 )}
               </button>
             </form>
           </div>
 
           <div className="card shadow-sm p-4 py-3 rounded-4">
-            <h5 className="fw-bold mb-3 text-secondary">All Chatbots</h5>
+            <h5 className="fw-bold mb-3 text-secondary">All Interview Sessions</h5>
 
             {bots.length === 0 ? (
               <p className="text-muted text-center mb-0">
-                No bots created yet.
+                No interview sessions created yet. Create your first session to start practicing!
               </p>
             ) : (
               <>
@@ -148,7 +151,7 @@ const BotList = () => {
                     <thead className="table-light">
                       <tr>
                         <th>#</th>
-                        <th>Name</th>
+                        <th>Session Name</th>
                         <th>Description</th>
                         <th>Created At</th>
                         <th>Action</th>
@@ -160,7 +163,7 @@ const BotList = () => {
                           <td>{indexOfFirstBot + index + 1}</td>
                           <td className="fw-semibold">{bot?.bot_name}</td>
                           <td>{bot?.description}</td>
-                          <td>{bot?.created_at["$date"]}</td>
+                          <td>{new Date(bot?.created_at["$date"]).toLocaleDateString()}</td>
                           <td>
                             <div className="d-flex gap-2">
                               <Button
@@ -174,7 +177,7 @@ const BotList = () => {
                                 size="sm"
                                 variant="outline-primary"
                               >
-                                Upload Doc
+                                📄 Upload Materials
                               </Button>
                               <Button
                                 onClick={() => {
@@ -187,7 +190,7 @@ const BotList = () => {
                                 size="sm"
                                 variant="outline-danger"
                               >
-                                Chat
+                                🎤 Start Interview
                               </Button>
                             </div>
                           </td>

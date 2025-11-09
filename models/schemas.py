@@ -58,5 +58,20 @@ class KnowledgeBotFiles(Document):
     size = IntField(required=True)  
     createdAt = DateTimeField(default=datetime.utcnow)
 
-   
+
+class ChatTranscript(Document):
+    meta = {'collection': 'chatTranscripts'}
+    user_id = ReferenceField(User)
+    namespace_id = StringField(required=True)
+    messages_json = StringField(required=True)  # JSON string of messages
+    pdf_path = StringField()  # server path to saved PDF (optional)
+    created_at = DateTimeField(default=datetime.utcnow)
+
+
+class UserSettings(Document):
+    meta = {'collection': 'userSettings'}
+    user_id = ReferenceField(User)
+    theme = StringField(default='light')   # 'light' | 'dark'
+    voice = StringField(default='female')  # 'male' | 'female'
+    updated_at = DateTimeField(default=datetime.utcnow)
         

@@ -4,7 +4,57 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>chat-bot</title>
+    <title>JavaSherpa - A guide for tough climb of Java interviews</title>
+    <style>
+      :root {
+        --bg-gradient-1: #eef3f8;
+        --bg-gradient-2: #f9fbfd;
+        --card-bg: rgba(255, 255, 255, 0.9);
+        --text-color: #222;
+        --muted-text: #6c757d;
+        --accent-1: #74b9ff;
+        --accent-2: #0984e3;
+        --border-soft: rgba(0,0,0,0.06);
+        --glass-blur: 12px;
+      }
+      [data-bs-theme="dark"] {
+        --bg-gradient-1: #0f172a;
+        --bg-gradient-2: #111827;
+        --card-bg: rgba(17, 24, 39, 0.85);
+        --text-color: #e5e7eb;
+        --muted-text: #9ca3af;
+        --accent-1: #60a5fa;
+        --accent-2: #3b82f6;
+        --border-soft: rgba(255,255,255,0.06);
+      }
+      body {
+        color: var(--text-color);
+        background: radial-gradient(1200px 800px at 10% 10%, var(--bg-gradient-1), transparent 60%),
+                    radial-gradient(1200px 800px at 90% 20%, var(--bg-gradient-2), transparent 60%),
+                    linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2));
+        transition: background 0.6s ease, color 0.3s ease;
+        min-height: 100vh;
+      }
+      .card, .navbar, .modal-content {
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--border-soft) !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.4s ease;
+      }
+      .btn-primary, .bg-primary, .text-primary { color: #fff !important; }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      }
+      .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+      .animate-fade-up { animation: fadeUp 0.5s ease; }
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-pop { animation: pop 0.35s ease; }
+      @keyframes pop { from { transform: scale(0.98); opacity: .8; } to { transform: scale(1); opacity: 1; } }
+    </style>
   </head>
   <body>
     <div id="root"></div>

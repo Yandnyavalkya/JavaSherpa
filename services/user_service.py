@@ -5,6 +5,8 @@ from models.schemas import User
 from utils.success import result,success,error
 from bson import ObjectId
 import bcrypt
+from models.schemas import UserSettings
+from datetime import datetime
 
 
 class UserQueries:
@@ -49,7 +51,7 @@ class UserQueries:
         user = User.objects(id = ObjectId(id)).first()
         if not user:
              return error('User Not Found')
-        return result(user.to_mongo().to_mongo().to_dict()())
+        return result(user.to_mongo().to_dict())
 
     async def getUserByRole(self,role:str):
          items = User.objects(role=role)
@@ -62,9 +64,25 @@ class UserQueries:
           
           item.update(**data.dict())
           item.reload()
-          return result(item.to_mongo().to_mongo().to_dict()())
+          return result(item.to_mongo().to_dict())
+
+    async def get_settings(self, user_id: str):
+          doc = UserSettings.objects(user_id=ObjectId(user_id)).first()
+          if not doc:
+               return result({"theme":"light","voice":"female"})
+          return result(doc.to_mongo().to_dict())
+
+    async def update_settings(self, user_id: str, theme: str, voice: str):
+          doc = UserSettings.objects(user_id=ObjectId(user_id)).first()
+          if not doc:
+               doc = UserSettings(user_id=ObjectId(user_id), theme=theme, voice=voice)
+               doc.save()
+          else:
+               doc.update(theme=theme, voice=voice, updated_at=datetime.utcnow())
+               doc.reload()
+          return result(doc.to_mongo().to_dict(), 'Settings updated')
 
   
         
         
-    
+        

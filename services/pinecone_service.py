@@ -1,4 +1,5 @@
 import os
+import random
 from config import constants
 from utils.backgroud_exeption import handleExceptions
 from utils.processor import parse_pdf, parse_text
@@ -29,15 +30,38 @@ pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINE
 class PineconeService:
 
     def __init__(self):
-        self.interview_questions = [
+        # Large question bank (add more as needed)
+        self.question_bank = [
             "What is the difference between primitive and reference data types in Java?",
-            "What is the purpose of the 'static' keyword in Java?",
-            "What is the difference between '==' and '.equals()' in Java?",
-            "What is the purpose of the 'try-catch' block in Java?",
-            "What is the difference between 'System.out.println()' and 'System.out.print()' in Java?"
+            "Explain the purpose and use-cases of the 'static' keyword in Java.",
+            "Differentiate between '==' and '.equals()' in Java with examples.",
+            "What is the purpose of a 'try-catch-finally' block?",
+            "Difference between 'System.out.println()' and 'System.out.print()'?",
+            "What is JVM, JRE, and JDK? How are they related?",
+            "Explain the concept of inheritance and its types in Java.",
+            "What is polymorphism? Give examples of compile-time and runtime polymorphism.",
+            "What is encapsulation and why is it important?",
+            "What are interfaces and abstract classes? When to use which?",
+            "Explain the Java memory model: heap vs stack.",
+            "What is garbage collection in Java and how does it work?",
+            "What are generics in Java? Benefits and examples.",
+            "Explain collections vs. arrays. When to use which?",
+            "What are ArrayList and LinkedList differences?",
+            "Explain HashMap vs Hashtable vs ConcurrentHashMap.",
+            "What is synchronization in Java? How does 'synchronized' work?",
+            "What are threads? How do you create and manage threads?",
+            "Explain exceptions vs errors. Checked vs unchecked exceptions.",
+            "What is the 'final', 'finally', and 'finalize' difference?",
         ]
-        self.current_index = {}
-        self.score = {}
+        # Per-session state
+        self.session_questions = {}  # namespace_id -> list[str] of 5 questions
+        self.current_index = {}      # namespace_id -> 0..n
+        self.score = {}              # namespace_id -> float
+
+    async def reset_session(self, namespace_id: str):
+        self.session_questions[namespace_id] = []
+        self.current_index[namespace_id] = 0
+        self.score[namespace_id] = 0
 
     @handleExceptions
     async def vectorize_documents_main(self, namespace_id: str):
@@ -136,15 +160,22 @@ class PineconeService:
         response = index.delete(delete_all=False, namespace=namespace_id, filter=filter_condition)
         return response
 
-    async def chain_resp(self, namespace_id: str, question: str, chatHistory: str):
-        """
-        Handles the JavaShepa interview chat logic.
-        """
-
-        # Initialize namespace state
+    async def _ensure_session(self, namespace_id: str):
         if namespace_id not in self.current_index:
             self.current_index[namespace_id] = 0
+        if namespace_id not in self.score:
             self.score[namespace_id] = 0
+        if namespace_id not in self.session_questions or not self.session_questions[namespace_id]:
+            # Pick 5 unique random questions for this session
+            k = 5 if len(self.question_bank) >= 5 else len(self.question_bank)
+            self.session_questions[namespace_id] = random.sample(self.question_bank, k=k)
+
+    async def chain_resp(self, namespace_id: str, question: str, chatHistory: str):
+        """
+        Handles the JavaShepa interview chat logic with per-session randomized questions.
+        """
+
+        await self._ensure_session(namespace_id)
 
         index = pc.Index(os.getenv('PINECONE_INDEX'))
         vectorstore = PineconeVectorStore(
@@ -157,15 +188,20 @@ class PineconeService:
         # Detect greeting and start interview
         greetings = ["hi", "hello", "hey", "good morning", "good afternoon"]
         if any(greet in question.lower() for greet in greetings) and self.current_index[namespace_id] == 0:
-            first_q = self.interview_questions[0]
+            # Reset and prepare a new random set
+            self.score[namespace_id] = 0
+            k = 5 if len(self.question_bank) >= 5 else len(self.question_bank)
+            self.session_questions[namespace_id] = random.sample(self.question_bank, k=k)
+            first_q = self.session_questions[namespace_id][0]
             self.current_index[namespace_id] = 1
             yield f"Hello! I’m JavaShepa — your AI interviewer for today. Let’s begin with the topic *Java Fundamentals.*\n\nQuestion 1: {first_q}"
             return
 
         # Interview in progress
         current_idx = self.current_index[namespace_id]
-        if 1 <= current_idx <= len(self.interview_questions):
-            last_question = self.interview_questions[current_idx - 1]
+        session_qs = self.session_questions.get(namespace_id, [])
+        if 1 <= current_idx <= len(session_qs):
+            last_question = session_qs[current_idx - 1]
 
             eval_prompt = f"""
 You are JavaShepa, an AI Java interviewer.
@@ -183,26 +219,26 @@ Guidelines:
             """
 
             chain = llm | StrOutputParser()
-            feedback = "".join([chunk for chunk in chain.stream(eval_prompt)])  # ✅ fixed sync streaming
+            feedback = "".join([chunk for chunk in chain.stream(eval_prompt)])
 
             # Rough scoring logic
             answer_lower = question.lower()
-            if any(word in answer_lower for word in ["primitive", "object", "reference", "memory", "value"]):
+            if any(word in answer_lower for word in ["primitive", "object", "reference", "memory", "value", "inheritance", "polymorphism", "encapsulation", "interface", "abstract"]):
                 self.score[namespace_id] += 1
             elif any(word in answer_lower for word in ["maybe", "partly", "somewhat", "not sure"]):
                 self.score[namespace_id] += 0.5
 
             # Move to next question or generate summary
-            if current_idx < len(self.interview_questions):
-                next_q = self.interview_questions[current_idx]
+            if current_idx < len(session_qs):
+                next_q = session_qs[current_idx]
                 self.current_index[namespace_id] += 1
-                yield f"{feedback}\n\nNext Question ({current_idx+1}): {next_q}"
+                yield f"{feedback}\n\n===== Next Question ({current_idx+1}) =====\n{next_q}"
             else:
                 final_prompt = f"""
 Generate a final Java interview summary for the student.
 
 Details:
-- Total Score: {self.score[namespace_id]}/5
+- Total Score: {self.score[namespace_id]}/{len(session_qs)}
 - Context: {chatHistory}
 
 Include:
@@ -214,10 +250,13 @@ Include:
 - Encouraging Remark
                 """
 
-                summary = "".join([chunk for chunk in chain.stream(final_prompt)])  # ✅ also fixed
+                chain = llm | StrOutputParser()
+                summary = "".join([chunk for chunk in chain.stream(final_prompt)])
 
-                yield f"{feedback}\n\n{summary}"
+                # Add clear separator before the summary for readability
+                yield f"{feedback}\n\n--- Interview Summary ---\n{summary}"
 
                 # Reset interview state
                 self.current_index[namespace_id] = 0
                 self.score[namespace_id] = 0
+                self.session_questions[namespace_id] = []

@@ -110,7 +110,8 @@ const PdfManager = () => {
         <div className="col-8">
           <div className="row align-items-center mb-4">
             <div className="col">
-              <h3 className="fw-bold text-primary">📄 PDF Upload Manager</h3>
+              <h3 className="fw-bold text-primary">📚 Interview Materials Manager</h3>
+              <p className="text-muted small mb-0">Upload study materials, notes, or reference documents for your interview session</p>
             </div>
             <div className="col text-end">
               <Button
@@ -128,7 +129,7 @@ const PdfManager = () => {
             <form>
               <div className="mb-3">
                 <label className="form-label fw-semibold">
-                  Select PDF File
+                  Select PDF File (Study Materials, Notes, etc.)
                 </label>
                 <input
                   type="file"
@@ -137,6 +138,7 @@ const PdfManager = () => {
                   onChange={handleFileChange}
                   ref={fileInputRef}
                 />
+                <small className="text-muted">Upload your Java interview preparation materials, notes, or reference documents</small>
               </div>
 
               <div className="text-end">
@@ -155,7 +157,7 @@ const PdfManager = () => {
                       Uploading...
                     </>
                   ) : (
-                    "Upload PDF"
+                    "Upload Materials"
                   )}
                 </Button>
               </div>
@@ -163,7 +165,7 @@ const PdfManager = () => {
           </div>
 
           <div className="card shadow-sm p-3">
-            <h5 className="fw-semibold mb-3 text-secondary">Uploaded PDFs</h5>
+            <h5 className="fw-semibold mb-3 text-secondary">Uploaded Materials</h5>
             <div className="table-responsive">
               <Table responsive bordered hover className="align-middle">
                 <thead className="table-light">

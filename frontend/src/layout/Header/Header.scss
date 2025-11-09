@@ -1,31 +1,40 @@
 .header {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border-soft);
 
   .navbar-brand {
-    color: #0984e3 !important;
+    color: var(--accent-2) !important;
     letter-spacing: 0.5px;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .java-icon {
+      font-size: 1.5rem;
+      color: #dc3545;
+    }
 
     &:hover {
-      color: #74b9ff !important;
+      color: var(--accent-1) !important;
+      transform: translateY(-1px);
     }
   }
 
   .nav-link {
-    color: #495057;
+    color: var(--muted-text);
     font-weight: 500;
     margin: 0 8px;
     position: relative;
     transition: color 0.3s ease;
 
     &.active {
-      color: #0984e3;
+      color: var(--accent-2);
     }
 
     &:hover {
-      color: #0984e3;
+      color: var(--accent-2);
     }
 
     &::after {
@@ -35,7 +44,7 @@
       bottom: 0;
       width: 0%;
       height: 2px;
-      background: #0984e3;
+      background: var(--accent-2);
       transition: width 0.3s ease;
     }
 
@@ -45,7 +54,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
     border: none;
     border-radius: 0.5rem;
     font-weight: 600;
@@ -53,9 +62,15 @@
     transition: all 0.3s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);
+      background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent-1) 100%);
       transform: translateY(-1px);
     }
+  }
+
+  .btn-outline-secondary {
+    border-color: var(--border-soft);
+    color: var(--text-color);
+    &:hover { background: rgba(0,0,0,0.04); }
   }
 
   .navbar-toggler {

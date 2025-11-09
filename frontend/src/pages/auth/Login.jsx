@@ -3,6 +3,8 @@ import "./Login.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ApiService from "../../services/Api.service";
+import AuthHeader from "../../components/AuthHeader/AuthHeader";
+import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -47,67 +49,81 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container d-flex align-items-center justify-content-center vh-100">
-      <div className="login-card shadow-lg p-4 rounded-4">
-        <h3 className="text-center mb-4 fw-bold">Welcome Back 👋</h3>
-        <form>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control form-control-lg"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
+    <div className="login-container">
+      <AuthHeader />
+      <div className="login-content">
+        <div className="login-left">
+          <FeaturesSection />
+        </div>
+        <div className="login-right">
+          <div className="login-card">
+            <h2 className="login-title">Welcome Back</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <div className="input-wrapper">
+                  <input
+                    type="email"
+                    name="email"
+                    className="form-control"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                  {formData.email && /\S+@\S+\.\S+/.test(formData.email) && (
+                    <span className="input-icon">✓</span>
+                  )}
+                </div>
+              </div>
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control form-control-lg"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-100 py-2 mt-2"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Login...
-              </>
-            ) : (
-              "Login"
-            )}
-          </button>
+              <div className="forgot-password">
+                <a href="#" className="forgot-link" onClick={(e) => e.preventDefault()}>
+                  Forgot password?
+                </a>
+              </div>
 
-          <div className="text-center mt-3">
-           
-            <p className="text-decoration-none small text-muted mb-0">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-decoration-none fw-bold text-primary"
+              <button
+                type="submit"
+                className="btn btn-primary login-button"
+                disabled={loading}
               >
-                Sign Up
-              </Link>
-            </p>
+                {loading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Login...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </button>
+
+              <div className="signup-link">
+                <p>
+                  Don't have an account?{" "}
+                  <Link to="/register" className="link-primary">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

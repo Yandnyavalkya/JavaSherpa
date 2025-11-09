@@ -24,6 +24,22 @@ async def getBotByUserId(request: Request):
 async def chatConversation(data: ChatRequest):
     return await chatBotService.chat_conversation(data)
 
+@router.post("/reset",dependencies=[Depends(get_current_token)])
+async def resetInterview(namespace_id: str):
+    return await chatBotService.reset_session(namespace_id)
+
+@router.post("/history",dependencies=[Depends(get_current_token)])
+async def saveHistory(request: Request, namespace_id: str, messages: list):
+    return await chatBotService.save_history(request, namespace_id, messages)
+
+@router.get("/history",dependencies=[Depends(get_current_token)])
+async def getHistory(request: Request, namespace_id: str):
+    return await chatBotService.get_history(request, namespace_id)
+
+@router.post("/history/pdf",dependencies=[Depends(get_current_token)])
+async def saveHistoryPdf(request: Request, namespace_id: str, messages: list):
+    return await chatBotService.save_history_pdf(request, namespace_id, messages)
+
 @router.get("/{id}",dependencies=[Depends(get_current_token)])
 async def getBotById(id: str):
     return await chatBotService.getBotById(id)
@@ -47,5 +63,6 @@ async def getBotById(id: str):
 
 
  
+
 
  

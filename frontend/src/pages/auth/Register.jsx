@@ -3,6 +3,9 @@ import "./Register.scss";
 import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../services/Api.service";
 import { toast } from "react-toastify";
+import AuthHeader from "../../components/AuthHeader/AuthHeader";
+import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
+
 const Register = () => {
   let navigate = useNavigate();
 
@@ -57,106 +60,115 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container d-flex align-items-center justify-content-center vh-100">
-      <div className="register-card shadow-lg p-4 rounded-4">
-        <h3 className="text-center fw-bold mb-2">Create Your Account 🚀</h3>
-        <p className="text-center text-muted mb-4">
-          Join us and start your journey today!
-        </p>
-
-        <form>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              className="form-control form-control-lg"
-              placeholder="Enter your full name"
-              value={formData.name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control form-control-lg"
-              placeholder="Enter your email address"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Phone</label>
-            <input
-              type="number"
-              name="phone_number"
-              className="form-control form-control-lg"
-              placeholder="Enter your phone number"
-              value={formData.phone_number}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Company</label>
-            <input
-              type="text"
-              name="company_name"
-              className="form-control form-control-lg"
-              placeholder="Enter your company name"
-              value={formData.company_name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control form-control-lg"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            type="submit"
-            className="btn btn-primary w-100 py-2 mt-2 d-flex align-items-center justify-content-center"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-                Registering...
-              </>
-            ) : (
-              "Register"
-            )}
-          </button>
-
-          <div className="text-center mt-3">
-            <p className="small text-muted">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="text-decoration-none fw-bold text-primary"
-              >
-                Login here
-              </Link>
+    <div className="register-container">
+      <AuthHeader />
+      <div className="register-content">
+        <div className="register-left">
+          <div className="register-card">
+            <h2 className="register-title">Create Your Account</h2>
+            <p className="register-subtitle">
+              Join us and start your journey today!
             </p>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  className="form-control"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <div className="input-wrapper">
+                  <input
+                    type="email"
+                    name="email"
+                    className="form-control"
+                    placeholder="Enter your email address"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                  {formData.email && /\S+@\S+\.\S+/.test(formData.email) && (
+                    <span className="input-icon">✓</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Phone</label>
+                <input
+                  type="tel"
+                  name="phone_number"
+                  className="form-control"
+                  placeholder="Enter your phone number"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Company</label>
+                <input
+                  type="text"
+                  name="company_name"
+                  className="form-control"
+                  placeholder="Enter your company name"
+                  value={formData.company_name}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary register-button"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Registering...
+                  </>
+                ) : (
+                  "Register"
+                )}
+              </button>
+
+              <div className="login-link">
+                <p>
+                  Already have an account?{" "}
+                  <Link to="/login" className="link-primary">
+                    Login here
+                  </Link>
+                </p>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
+        <div className="register-right">
+          <FeaturesSection />
+        </div>
       </div>
     </div>
   );

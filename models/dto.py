@@ -25,6 +25,14 @@ class ChatRequest(BaseModel):
     namespace_id: str    
     chatHistory:List[conversation] 
 
+class ChatHistorySave(BaseModel):
+    namespace_id: str
+    messages: List[conversation]
+
+class SettingsUpdate(BaseModel):
+    theme: str
+    voice: str
+
 class UserLogin(BaseModel):  
     email:str  
     password:str 
