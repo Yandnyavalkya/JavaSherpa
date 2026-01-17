@@ -4,6 +4,7 @@ import "./Header.scss";
 import { removeUser } from "../../utils/localStorage";
 import { getVariable } from "../../utils/localStorage";
 import SettingsModal from "../../components/settings.modal";
+import { FaJava } from "react-icons/fa";
 
 const Header = () => {
   const location = useLocation();
@@ -16,10 +17,9 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const saved = getVariable("app_settings");
-    const theme = saved?.theme === "dark" ? "dark" : "light";
+    // Always set dark theme
     try {
-      document.documentElement.setAttribute("data-bs-theme", theme);
+      document.documentElement.setAttribute("data-bs-theme", "dark");
     } catch (_) {}
   }, []);
 
@@ -27,8 +27,9 @@ const Header = () => {
     <>
       <nav className="navbar navbar-expand-lg header shadow-sm">
         <div className="container">
-          <Link className="navbar-brand fw-bold fs-4 text-primary" to="/default/bot-list">
-            <span className="java-icon">☕</span> JavaSherpa
+          <Link className="navbar-brand" to="/default/bot-list">
+            <FaJava className="java-icon" />
+            <span className="logo-text">JavaSherpa</span>
           </Link>
 
           <button

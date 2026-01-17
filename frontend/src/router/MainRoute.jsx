@@ -2,6 +2,7 @@ import React, { lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
+const Home = lazy(() => import("../pages/home/Home"));
 const Login = lazy(() => import("../pages/auth/Login"));
 const Register = lazy(() => import("../pages/auth/Register"));
 const Default = lazy(() => import("../pages/default/Default"));
@@ -12,14 +13,14 @@ const FileUpload = lazy(() =>
   import("../pages/default/components/FileUpload/FileUpload")
 );
 const ChatPage = lazy(() =>
-  import("../pages/default/components//ChatPage/ChatPage")
+  import("../pages/default/components/ChatPage/ChatPage")
 );
 
 const MainRoute = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 

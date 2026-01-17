@@ -20,4 +20,6 @@ PyJWT
 bcrypt 
 mongoengine 
 blinker  
-reportlab 
+reportlab
+pyttsx3
+gtts 

@@ -4,7 +4,6 @@ import { getVariable, setVariable } from "../utils/localStorage";
 import ApiService from "../services/Api.service";
 
 const SettingsModal = ({ show, onClose }) => {
-  const [theme, setTheme] = useState("light");
   const [voice, setVoice] = useState("female");
   const [loading, setLoading] = useState(false);
 
@@ -13,12 +12,10 @@ const SettingsModal = ({ show, onClose }) => {
       try {
         const { data } = await ApiService.getUserSettings();
         const res = data?.result || {};
-        if (res.theme) setTheme(res.theme);
         if (res.voice) setVoice(res.voice);
       } catch (_) {
         const saved = getVariable("app_settings");
         if (saved && typeof saved === "object") {
-          if (saved.theme) setTheme(saved.theme);
           if (saved.voice) setVoice(saved.voice);
         }
       }
@@ -26,22 +23,13 @@ const SettingsModal = ({ show, onClose }) => {
     if (show) fetchSettings();
   }, [show]);
 
-  const applyTheme = (mode) => {
-    try {
-      document.documentElement.setAttribute(
-        "data-bs-theme",
-        mode === "dark" ? "dark" : "light"
-      );
-    } catch (_) {}
-  };
-
   const handleSave = async () => {
-    const payload = { theme, voice };
+    // Always use dark theme, only save voice preference
+    const payload = { theme: "dark", voice };
     setLoading(true);
     try {
       await ApiService.updateUserSettings(payload);
       setVariable("app_settings", payload);
-      applyTheme(theme);
     } finally {
       setLoading(false);
       onClose?.();
@@ -55,17 +43,6 @@ const SettingsModal = ({ show, onClose }) => {
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>Display Theme</Form.Label>
-            <Form.Select
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </Form.Select>
-          </Form.Group>
-
           <Form.Group>
             <Form.Label>AI Voice</Form.Label>
             <Form.Select

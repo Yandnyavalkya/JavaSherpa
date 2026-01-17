@@ -1,73 +1,90 @@
 .chat-page {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: radial-gradient(circle at center, #1a1a1a, #000000);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  padding: 2rem 0;
+  padding-top: 120px !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2rem;
+  color: #ffffff;
 
-  // Animated background elements
   &::before {
     content: "";
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    top: -250px;
-    left: -250px;
-    animation: float 20s ease-in-out infinite;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+      radial-gradient(2px 2px at 60% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 10%, #fff, transparent),
+      radial-gradient(2px 2px at 90% 60%, #fff, transparent),
+      radial-gradient(1px 1px at 33% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 55% 20%, #fff, transparent),
+      radial-gradient(2px 2px at 10% 90%, #fff, transparent),
+      radial-gradient(1px 1px at 70% 40%, #fff, transparent),
+      radial-gradient(2px 2px at 40% 10%, #fff, transparent);
+    background-size: 200% 200%;
+    background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 0%, 50% 50%, 0% 100%, 100% 0%, 50% 100%;
+    animation: twinkle 20s ease-in-out infinite;
+    opacity: 0.8;
+    z-index: 0;
+    pointer-events: none;
   }
 
-  &::after {
-    content: "";
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    bottom: -200px;
-    right: -200px;
-    animation: float 25s ease-in-out infinite reverse;
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
   }
 
   .chat-card {
-    height: 85vh;
+    height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.3), rgba(6, 182, 212, 0.3));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 1.5rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     animation: slideInUp 0.6s ease-out;
     position: relative;
     z-index: 1;
+    overflow: hidden;
 
     .chat-header {
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(15px) saturate(180%);
+      -webkit-backdrop-filter: blur(15px) saturate(180%);
       position: sticky;
       top: 0;
-      z-index: 2;
+      z-index: 3;
       flex-wrap: wrap;
       gap: 1rem;
-      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem 2rem;
 
       h5 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-weight: 800;
-        font-size: 1.5rem;
+        background-size: 200% 200%;
+        animation: gradient-shift 3s ease infinite;
+        font-weight: 900;
+        font-size: 1.75rem;
         margin: 0;
       }
 
       small {
-        color: #718096;
+        color: rgba(255, 255, 255, 0.8);
         font-weight: 500;
       }
 
@@ -151,9 +168,31 @@
     .chat-body {
       flex: 1;
       overflow-y: auto;
-      max-height: 70vh;
-      padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.3);
+      overflow-x: hidden;
+      padding: 2rem;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      scroll-behavior: smooth;
+      
+      /* Custom scrollbar styling */
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #9333ea, #06b6d4);
+        border-radius: 4px;
+        
+        &:hover {
+          background: linear-gradient(to bottom, #a855f7, #22d3ee);
+        }
+      }
 
       .message-row {
         margin-bottom: 1.5rem;
@@ -177,28 +216,275 @@
         }
 
         .user-msg {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(to right, #7e22ce, #db2777, #0891b2);
           color: #fff;
           border-bottom-right-radius: 0.25rem;
-          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
         }
 
         .bot-msg {
-          background: rgba(255, 255, 255, 0.9);
-          color: #2d3748;
-          border: 1px solid rgba(102, 126, 234, 0.1);
+          background: rgba(128, 128, 128, 0.3);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: rgba(255, 255, 255, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           border-bottom-left-radius: 0.25rem;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-response-content {
+          text-align: left;
+          line-height: 1.6;
+
+          .markdown-paragraph {
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.95);
+          }
+
+          .markdown-bold {
+            font-weight: 700;
+            color: #a855f7;
+          }
+
+          .markdown-heading {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem 0;
+            color: #a855f7;
+            background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+
+          .code-block-wrapper {
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+            .code-block-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0.5rem 1rem;
+              background: rgba(0, 0, 0, 0.6);
+              border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+
+              .code-language {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 0.875rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+
+              .copy-code-btn {
+                display: flex;
+                align-items: center;
+                background: transparent;
+                border: 1px solid rgba(168, 85, 247, 0.4);
+                color: rgba(255, 255, 255, 0.9);
+                padding: 0.375rem 0.75rem;
+                border-radius: 0.375rem;
+                font-size: 0.875rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                gap: 0.25rem;
+
+                &:hover {
+                  background: rgba(168, 85, 247, 0.2);
+                  border-color: rgba(168, 85, 247, 0.6);
+                  color: #fff;
+                  transform: translateY(-1px);
+                }
+
+                &:active {
+                  transform: translateY(0);
+                }
+
+                &.copied {
+                  color: #22d3ee;
+                  border-color: #22d3ee;
+                  background: rgba(34, 211, 238, 0.1);
+                }
+
+                svg {
+                  font-size: 0.75rem;
+                }
+              }
+            }
+          }
+
+          .code-block {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            position: relative;
+
+            code {
+              color: #22d3ee;
+              font-family: 'Courier New', monospace;
+              font-size: 0.9rem;
+              line-height: 1.5;
+              display: block;
+              white-space: pre;
+            }
+          }
+
+          .inline-code {
+            background: rgba(168, 85, 247, 0.2);
+            color: #22d3ee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+          }
+
+          .markdown-list {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+
+            .markdown-list-item {
+              margin-bottom: 0.5rem;
+              line-height: 1.6;
+            }
+          }
+
+          .markdown-blockquote {
+            border-left: 3px solid #a855f7;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+          }
+
+          // Highlight follow-up questions - using class-based approach
+          .markdown-paragraph.follow-up-question {
+            display: block;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: rgba(168, 85, 247, 0.15);
+            border-left: 4px solid #a855f7;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+          }
+
+          .markdown-hr {
+            border: none;
+            border-top: 2px solid rgba(168, 85, 247, 0.3);
+            margin: 1.5rem 0;
+          }
+
+          .report-action-button-container {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            animation: fadeInUp 0.4s ease-out;
+          }
+        }
+      }
+    }
+
+    // Report Modal Styles
+    .report-modal {
+      .modal-content {
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      .report-modal-header {
+        background: linear-gradient(to right, rgba(168, 85, 247, 0.2), rgba(34, 211, 238, 0.2));
+        border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+        border-radius: 1.5rem 1.5rem 0 0;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .modal-title {
+          color: #fff;
+          font-weight: 700;
+          font-size: 1.25rem;
+          margin: 0;
+          display: flex;
+          align-items: center;
+        }
+
+        .close-button {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.8);
+          cursor: pointer;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: rotate(90deg);
+          }
+        }
+      }
+
+      .report-modal-body {
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .report-modal-footer {
+        background: rgba(0, 0, 0, 0.4);
+        border-top: 1px solid rgba(168, 85, 247, 0.3);
+        border-radius: 0 0 1.5rem 1.5rem;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+
+        .btn {
+          font-weight: 600;
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          }
         }
       }
     }
 
     .chat-input {
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(15px) saturate(180%);
+      -webkit-backdrop-filter: blur(15px) saturate(180%);
       border-radius: 0 0 1.5rem 1.5rem;
-      border-top: 1px solid rgba(102, 126, 234, 0.1);
-      padding: 1.25rem 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem 2rem;
 
       form {
         display: flex;
@@ -208,23 +494,28 @@
 
       input {
         flex: 1;
-        background: rgba(255, 255, 255, 0.9);
-        color: #2d3748;
-        border: 2px solid #e2e8f0;
-        border-radius: 0.75rem;
-        padding: 0.875rem 1.25rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #ffffff;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
 
         &:focus {
           outline: none;
           border-color: #667eea;
-          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.15);
+          box-shadow: 
+            0 0 0 4px rgba(102, 126, 234, 0.2),
+            0 4px 16px rgba(102, 126, 234, 0.3);
           transform: translateY(-2px);
-          background: white;
+          background: rgba(255, 255, 255, 0.15);
         }
 
         &::placeholder {
-          color: #a0aec0;
+          color: rgba(255, 255, 255, 0.5);
         }
       }
 
@@ -352,5 +643,18 @@
   }
   50% {
     opacity: 0.7;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-page {
+    padding-top: 110px !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+
+    .chat-card {
+      height: calc(100vh - 130px);
+    }
   }
 }

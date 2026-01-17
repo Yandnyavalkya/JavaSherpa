@@ -5,6 +5,7 @@ import ApiService from "../../../../services/Api.service";
 import { toast } from "react-toastify";
 import { bytesToMB } from "../../../../utils/helper";
 import DeleteConfirmModal from "../../../../components/confirmation.modal";
+import { FaBook } from "react-icons/fa";
 import "./FileUpload.scss";
 
 const PdfManager = () => {
@@ -105,12 +106,14 @@ const PdfManager = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container-fluid p-4 ">
+    <div className="container-fluid">
       <div className="row justify-content-center ">
         <div className="col-8">
           <div className="row align-items-center mb-4">
             <div className="col">
-              <h3 className="fw-bold text-primary">📚 Interview Materials Manager</h3>
+              <h3 className="fw-bold text-primary">
+                <FaBook className="me-2" /> Interview Materials Manager
+              </h3>
               <p className="text-muted small mb-0">Upload study materials, notes, or reference documents for your interview session</p>
             </div>
             <div className="col text-end">

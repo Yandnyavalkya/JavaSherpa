@@ -74,4 +74,20 @@ class UserSettings(Document):
     theme = StringField(default='light')   # 'light' | 'dark'
     voice = StringField(default='female')  # 'male' | 'female'
     updated_at = DateTimeField(default=datetime.utcnow)
+
+
+class InterviewArtifacts(Document):
+    meta = {'collection': 'interviewArtifacts'}
+    user_id = ReferenceField(User)
+    namespace_id = StringField(required=True)
+    session_name = StringField()  # Interview session name
+    topic = StringField()  # Interview topic
+    transcript_pdf_path = StringField()  # Path to transcript PDF
+    detailed_report_pdf_path = StringField()  # Path to detailed report PDF
+    summary_audio_path = StringField()  # Path to TTS audio of summary
+    summary_text = StringField()  # Summary text
+    total_score = StringField()  # Score string like "4/5"
+    created_at = DateTimeField(default=datetime.utcnow)
+    sent_to_email = DateTimeField()  # Timestamp when email was sent
+    sent_to_drive = DateTimeField()  # Timestamp when added to drive
         

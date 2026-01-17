@@ -12,3 +12,23 @@ __pycache__/
 
 # Environment variables
 .env
+
+# Upload directory (contains user data and PDFs)
+upload/
+
+# Node modules
+node_modules/
+
+# Test files
+test_email.py
+test_email_simple.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

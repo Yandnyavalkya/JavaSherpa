@@ -24,8 +24,15 @@ app.add_middleware(CustomExceptionHandler)
 app.add_middleware(JwtMiddleware,exempt_routes=exempt_routes)
  
 
-init_db()
-create_super_admin()
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and create super admin on application startup"""
+    try:
+        init_db()
+        create_super_admin()
+    except Exception as e:
+        print(f"Warning: Failed to initialize database on startup: {str(e)}")
+        print("The application will continue, but database operations may fail.")
 
 @app.get("/health")
 async def healthCheck():

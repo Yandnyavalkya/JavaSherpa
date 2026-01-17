@@ -81,12 +81,73 @@ const ApiService = {
   },
 
   saveHistoryPdf: async (namespace_id, messages) => {
+    // Ensure messages are in the correct format for backend
+    const formattedMessages = messages.map(msg => ({
+      question: msg.question || "",
+      Ai_response: msg.Ai_response || ""
+    }));
+    
     const { data, loading, error } = await AxiosClient({
       method: "POST",
       url: `chat-bot/history/pdf`,
-      data: { namespace_id, messages }
+      data: { namespace_id, messages: formattedMessages },
+      responseType: 'blob' // Important: tell axios to expect binary data
     });
     return { data, error, loading };
+  },
+
+  generateDetailedReport: async (namespace_id, messages) => {
+    try {
+      // Ensure messages are in the correct format for backend
+      const formattedMessages = messages.map(msg => ({
+        question: String(msg.question || ""),
+        Ai_response: String(msg.Ai_response || "")
+      }));
+      
+      console.log('Sending detailed report request:', {
+        namespace_id,
+        messagesCount: formattedMessages.length,
+        sample: formattedMessages[0]
+      });
+      
+      const { data, loading, error } = await AxiosClient({
+        method: "POST",
+        url: `chat-bot/report/detailed`,
+        data: { namespace_id, messages: formattedMessages },
+        responseType: 'blob' // Important: tell axios to expect binary data
+      });
+      
+      // If there's an error, check if the blob is actually an error JSON
+      if (error || (data instanceof Blob && data.type === 'application/json')) {
+        // Try to parse error from blob
+        if (data instanceof Blob && data.type === 'application/json') {
+          const text = await data.text();
+          try {
+            const errorData = JSON.parse(text);
+            return { data: null, error: { response: { data: errorData }, message: errorData.message || 'Failed to generate report' }, loading };
+          } catch (e) {
+            // Not JSON, return original error
+          }
+        }
+        return { data, error, loading };
+      }
+      
+      // Check if blob is actually a PDF
+      if (data instanceof Blob && data.type !== 'application/pdf' && data.size < 1000) {
+        // Small blob might be an error, try to parse it
+        const text = await data.text();
+        try {
+          const errorData = JSON.parse(text);
+          return { data: null, error: { response: { data: errorData }, message: errorData.message || 'Failed to generate report' }, loading };
+        } catch (e) {
+          // Not JSON, might be a small PDF, return as is
+        }
+      }
+      
+      return { data, error, loading };
+    } catch (err) {
+      return { data: null, error: err, loading: false };
+    }
   },
 
   //  startConversation: async (payload) => {
@@ -133,6 +194,14 @@ const ApiService = {
       method: 'POST',
       url: `chat-bot/reset`,
       data: { namespace_id }
+    });
+    return { data, error, loading };
+  },
+
+  deleteBot: async (id) => {
+    const { data, loading, error } = await AxiosClient({
+      method: 'DELETE',
+      url: `chat-bot/${id}`
     });
     return { data, error, loading };
   },

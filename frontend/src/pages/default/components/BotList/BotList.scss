@@ -1,61 +1,82 @@
 .bot-list-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: radial-gradient(circle at center, #1a1a1a, #000000);
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
-  padding: 2rem 0;
+  overflow-x: hidden;
+  overflow-y: visible;
+  padding-top: 120px !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2rem;
+  color: #ffffff;
 
-  // Animated background elements
   &::before {
     content: "";
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    top: -300px;
-    right: -300px;
-    animation: float 20s ease-in-out infinite;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+      radial-gradient(2px 2px at 60% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 10%, #fff, transparent),
+      radial-gradient(2px 2px at 90% 60%, #fff, transparent),
+      radial-gradient(1px 1px at 33% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 55% 20%, #fff, transparent),
+      radial-gradient(2px 2px at 10% 90%, #fff, transparent),
+      radial-gradient(1px 1px at 70% 40%, #fff, transparent),
+      radial-gradient(2px 2px at 40% 10%, #fff, transparent);
+    background-size: 200% 200%;
+    background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 0%, 50% 50%, 0% 100%, 100% 0%, 50% 100%;
+    animation: twinkle 20s ease-in-out infinite;
+    opacity: 0.8;
+    z-index: 0;
+    pointer-events: none;
   }
 
-  &::after {
-    content: "";
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    bottom: -250px;
-    left: -250px;
-    animation: float 25s ease-in-out infinite reverse;
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
   }
 
   .card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.3), rgba(6, 182, 212, 0.3));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     animation: fadeInUp 0.6s ease-out;
     animation-fill-mode: both;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
 
     &:nth-child(1) { animation-delay: 0.1s; }
     &:nth-child(2) { animation-delay: 0.2s; }
 
     &:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 
+        0 25px 70px rgba(168, 85, 247, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.15);
     }
 
     h4,
     h5 {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      font-weight: 800;
-      animation: fadeInUp 0.8s ease-out;
+      background-size: 200% 200%;
+      animation: gradient-shift 3s ease infinite, fadeInUp 0.8s ease-out;
+      font-weight: 900;
     }
 
     h4 {
@@ -99,62 +120,75 @@
     }
 
     .form-control {
-      background: rgba(255, 255, 255, 0.9);
-      color: #2d3748;
-      border-radius: 0.75rem;
-      border: 2px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #ffffff;
+      border-radius: 1rem;
+      border: 2px solid rgba(102, 126, 234, 0.3);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 0.875rem 1.25rem;
+      padding: 1rem 1.5rem;
+      font-weight: 500;
 
       &:focus {
         border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.15);
+        box-shadow: 
+          0 0 0 4px rgba(102, 126, 234, 0.2),
+          0 4px 16px rgba(102, 126, 234, 0.3);
         transform: translateY(-2px);
-        background: white;
+        background: rgba(255, 255, 255, 0.15);
       }
 
       &::placeholder {
-        color: #a0aec0;
+        color: rgba(255, 255, 255, 0.5);
       }
     }
 
     .form-label {
       font-weight: 600;
-      color: #4a5568;
+      color: rgba(255, 255, 255, 0.9);
       margin-bottom: 0.75rem;
     }
   }
 
   table {
+    background: rgba(102, 126, 234, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    overflow: hidden;
+
     th {
       font-weight: 700;
-      color: #4a5568;
-      background: rgba(102, 126, 234, 0.05);
-      border-bottom: 2px solid rgba(102, 126, 234, 0.1);
-      padding: 1rem;
+      color: rgba(255, 255, 255, 0.95);
+      background: rgba(102, 126, 234, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+      padding: 1.25rem;
     }
 
     td {
-      color: #2d3748;
-      padding: 1rem;
-      border-bottom: 1px solid rgba(102, 126, 234, 0.05);
-      transition: background 0.3s ease;
+      color: rgba(255, 255, 255, 0.9);
+      padding: 1.25rem;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      transition: all 0.3s ease;
     }
 
     tbody tr {
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(102, 126, 234, 0.05);
-        transform: scale(1.01);
+        background: rgba(102, 126, 234, 0.15);
+        transform: scale(1.02);
       }
     }
   }
 
   .table-responsive {
-    height: 15rem !important;
     border-radius: 1rem;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: visible;
   }
 
   .btn {
@@ -193,12 +227,12 @@
   }
 
   .text-muted {
-    color: #718096 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
   }
 
   .text-center {
     p {
-      color: #718096;
+      color: rgba(255, 255, 255, 0.8);
       font-size: 1.05rem;
     }
   }
@@ -224,5 +258,14 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .bot-list-container {
+    padding-top: 110px !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
   }
 }

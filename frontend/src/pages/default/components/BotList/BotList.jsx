@@ -4,6 +4,7 @@ import { Table, Pagination, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../../../services/Api.service";
 import { toast } from "react-toastify";
+import { FaMicrophone, FaTrash, FaUpload } from "react-icons/fa";
 
 const BotList = () => {
   const [bots, setBots] = useState([]);
@@ -64,6 +65,26 @@ const BotList = () => {
     }
   };
 
+  const handleDelete = async (botId) => {
+    if (!window.confirm("Are you sure you want to delete this interview session? This action cannot be undone.")) {
+      return;
+    }
+
+    setLoading(true);
+    let { data, error } = await ApiService.deleteBot(botId);
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.response?.data?.message || "Failed to delete session");
+      return;
+    }
+
+    if (data) {
+      toast.success(data.message || "Session deleted successfully");
+      fetchAllChatBots();
+    }
+  };
+
   // Pagination logic
   const indexOfLastBot = currentPage * botsPerPage;
   const indexOfFirstBot = indexOfLastBot - botsPerPage;
@@ -78,12 +99,12 @@ const BotList = () => {
   };
 
   return (
-    <div className="bot-list-container container-fluid py-3">
+    <div className="bot-list-container container-fluid">
       <div className="row justify-content-center">
         <div className="col-lg-8">
           <div className="card shadow-sm p-4  rounded-4 mb-3">
             <h4 className="fw-bold mb-3 text-center text-primary">
-              🎤 Create a New Interview Session
+              <FaMicrophone className="me-2" /> Create a New Interview Session
             </h4>
             <p className="text-center text-muted mb-4 small">
               Set up a new interview preparation session to practice Java interviews with voice commands
@@ -177,7 +198,7 @@ const BotList = () => {
                                 size="sm"
                                 variant="outline-primary"
                               >
-                                📄 Upload Materials
+                                <FaUpload className="me-2" /> Upload Materials
                               </Button>
                               <Button
                                 onClick={() => {
@@ -190,7 +211,16 @@ const BotList = () => {
                                 size="sm"
                                 variant="outline-danger"
                               >
-                                🎤 Start Interview
+                                <FaMicrophone className="me-2" /> Start Interview
+                              </Button>
+                              <Button
+                                onClick={() => handleDelete(bot._id["$oid"])}
+                                size="sm"
+                                variant="outline-danger"
+                                disabled={loading}
+                                title="Delete Session"
+                              >
+                                <FaTrash />
                               </Button>
                             </div>
                           </td>

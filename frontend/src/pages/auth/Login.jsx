@@ -3,8 +3,7 @@ import "./Login.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ApiService from "../../services/Api.service";
-import AuthHeader from "../../components/AuthHeader/AuthHeader";
-import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
+import StarBackground from "../../components/StarBackground/StarBackground";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -50,14 +49,12 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <AuthHeader />
+      <StarBackground />
       <div className="login-content">
-        <div className="login-left">
-          <FeaturesSection />
-        </div>
-        <div className="login-right">
+        <div className="login-center">
           <div className="login-card">
             <h2 className="login-title">Welcome Back</h2>
+            <p className="login-subtitle">Sign in to continue your Java interview journey</p>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label">Email</label>
@@ -122,6 +119,11 @@ const Login = () => {
                 </p>
               </div>
             </form>
+            <div className="back-to-home">
+              <Link to="/" className="back-link">
+                ← Back to Home
+              </Link>
+            </div>
           </div>
         </div>
       </div>

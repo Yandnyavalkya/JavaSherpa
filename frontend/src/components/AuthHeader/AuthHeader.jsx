@@ -1,13 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./AuthHeader.scss";
+import { FaJava } from "react-icons/fa";
 
 const AuthHeader = () => {
   return (
     <nav className="auth-header">
       <div className="auth-header-container">
-        <Link to="/login" className="auth-logo">
-          <span className="java-icon">☕</span>
+        <Link to="/" className="auth-logo">
+          <FaJava className="java-icon" />
           <span className="logo-text">JavaSherpa</span>
         </Link>
         <div className="auth-nav-buttons">

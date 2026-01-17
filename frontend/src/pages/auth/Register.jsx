@@ -3,8 +3,7 @@ import "./Register.scss";
 import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../services/Api.service";
 import { toast } from "react-toastify";
-import AuthHeader from "../../components/AuthHeader/AuthHeader";
-import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
+import StarBackground from "../../components/StarBackground/StarBackground";
 
 const Register = () => {
   let navigate = useNavigate();
@@ -61,13 +60,13 @@ const Register = () => {
 
   return (
     <div className="register-container">
-      <AuthHeader />
+      <StarBackground />
       <div className="register-content">
-        <div className="register-left">
+        <div className="register-center">
           <div className="register-card">
             <h2 className="register-title">Create Your Account</h2>
             <p className="register-subtitle">
-              Join us and start your journey today!
+              Join us and start your Java interview journey today!
             </p>
 
             <form onSubmit={handleSubmit}>
@@ -164,10 +163,12 @@ const Register = () => {
                 </p>
               </div>
             </form>
+            <div className="back-to-home">
+              <Link to="/" className="back-link">
+                ← Back to Home
+              </Link>
+            </div>
           </div>
-        </div>
-        <div className="register-right">
-          <FeaturesSection />
         </div>
       </div>
     </div>

@@ -1,89 +1,74 @@
 .register-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: radial-gradient(circle at center, #1a1a1a, #000000);
   position: relative;
   overflow: hidden;
-
-  // Animated background elements
-  &::before {
-    content: "";
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    top: -250px;
-    left: -250px;
-    animation: float 20s ease-in-out infinite;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    bottom: -200px;
-    right: -200px;
-    animation: float 25s ease-in-out infinite reverse;
-  }
+  color: #ffffff;
 
   .register-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
-    padding-top: 80px;
+    padding: 2rem;
     position: relative;
     z-index: 1;
+    box-sizing: border-box;
 
-    .register-left {
+    .register-center {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
-      position: relative;
-    }
-
-    .register-right {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      width: 100%;
+      max-width: 550px;
+      margin: 0 auto;
     }
 
     .register-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
+      background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.3), rgba(6, 182, 212, 0.3));
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-radius: 1.5rem;
       padding: 3rem;
       width: 100%;
-      max-width: 500px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-      animation: slideInLeft 0.6s ease-out;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+      animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
 
       &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2);
+        transform: translateY(-4px);
+        border-color: rgba(168, 85, 247, 0.5);
+        box-shadow: 
+          0 25px 70px rgba(168, 85, 247, 0.3),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.15);
       }
 
       .register-title {
         font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-weight: 900;
+        background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        margin-bottom: 0.5rem;
-        animation: fadeInUp 0.8s ease-out;
+        background-size: 200% 200%;
+        animation: gradient-shift 3s ease infinite, fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        text-align: center;
       }
 
       .register-subtitle {
-        font-size: 1.05rem;
-        color: #718096;
-        margin-bottom: 2rem;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 2.5rem;
         animation: fadeInUp 0.8s ease-out 0.1s both;
+        text-align: center;
+        font-weight: 400;
       }
 
       .form-group {
@@ -101,10 +86,11 @@
         .form-label {
           display: block;
           font-weight: 600;
-          color: #4a5568;
+          color: rgba(255, 255, 255, 0.9);
           margin-bottom: 0.75rem;
-          font-size: 0.9rem;
+          font-size: 0.95rem;
           transition: color 0.3s ease;
+          letter-spacing: 0.01em;
         }
 
         .input-wrapper {
@@ -123,36 +109,49 @@
 
         .form-control {
           width: 100%;
-          padding: 0.875rem 1.25rem;
-          border: 2px solid #e2e8f0;
-          border-radius: 0.75rem;
+          padding: 1rem 1.5rem;
+          border: 2px solid rgba(102, 126, 234, 0.3);
+          border-radius: 1rem;
           font-size: 1rem;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          background: white;
-          color: #2d3748;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          color: #ffffff;
+          font-weight: 500;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            transition: opacity 0.3s ease;
+            font-weight: 400;
+          }
 
           &:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.15);
+            box-shadow: 
+              0 0 0 4px rgba(102, 126, 234, 0.2),
+              0 4px 16px rgba(102, 126, 234, 0.3),
+              0 2px 4px rgba(0, 0, 0, 0.3);
             transform: translateY(-2px);
-          }
-
-          &::placeholder {
-            color: #a0aec0;
-            transition: opacity 0.3s ease;
+            background: rgba(255, 255, 255, 0.15);
           }
 
           &:focus::placeholder {
             opacity: 0.5;
+          }
+
+          &:hover:not(:focus) {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
           }
         }
       }
 
       .register-button {
         width: 100%;
-        padding: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.125rem;
+        background: linear-gradient(to right, #7e22ce, #db2777, #0891b2);
         color: white;
         border: none;
         border-radius: 0.75rem;
@@ -160,11 +159,15 @@
         font-size: 1.05rem;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
         position: relative;
         overflow: hidden;
         animation: fadeInUp 0.8s ease-out 0.45s both;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 
+          0 4px 16px rgba(102, 126, 234, 0.35),
+          0 2px 4px rgba(0, 0, 0, 0.1);
         margin-top: 0.5rem;
+        letter-spacing: 0.3px;
 
         &::before {
           content: "";
@@ -178,9 +181,9 @@
         }
 
         &:hover:not(:disabled) {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-          background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 8px 28px rgba(168, 85, 247, 0.5);
+          background: linear-gradient(to right, #9333ea, #ec4899, #06b6d4);
 
           &::before {
             left: 100%;
@@ -198,22 +201,48 @@
         }
       }
 
+      .back-to-home {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeInUp 0.8s ease-out 0.7s both;
+
+        .back-link {
+          color: #a855f7;
+          text-decoration: none;
+          font-size: 0.95rem;
+          font-weight: 500;
+          transition: all 0.3s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          &:hover {
+            color: #22d3ee;
+            transform: translateX(-4px);
+          }
+        }
+      }
+
       .login-link {
         text-align: center;
         margin-top: 1.5rem;
         animation: fadeInUp 0.8s ease-out 0.5s both;
 
         p {
-          color: #718096;
+          color: rgba(255, 255, 255, 0.7);
           font-size: 0.9rem;
           margin: 0;
 
           .link-primary {
-            color: #667eea;
+            color: #f093fb;
             text-decoration: none;
             font-weight: 700;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            display: inline-block;
+            padding: 0 2px;
 
             &::after {
               content: "";
@@ -221,13 +250,15 @@
               bottom: -2px;
               left: 0;
               width: 0;
-              height: 2px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              transition: width 0.3s ease;
+              height: 2.5px;
+              background: linear-gradient(90deg, #f093fb, #667eea);
+              border-radius: 1px;
+              transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
             &:hover {
-              color: #764ba2;
+              color: #667eea;
+              transform: translateY(-1px);
               
               &::after {
                 width: 100%;
@@ -241,19 +272,12 @@
 
   @media (max-width: 968px) {
     .register-content {
-      grid-template-columns: 1fr;
-      padding-top: 70px;
-
-      .register-right {
-        display: none;
-      }
-
-      .register-left {
-        padding: 1.5rem;
-      }
+      padding: 0 1.5rem;
+      padding-top: 90px;
+      padding-bottom: 2rem;
 
       .register-card {
-        padding: 2rem;
+        padding: 2.5rem;
       }
     }
   }
@@ -272,14 +296,14 @@
   }
 }
 
-@keyframes slideInLeft {
+@keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateX(-50px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 

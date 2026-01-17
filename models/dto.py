@@ -17,8 +17,11 @@ class CreateBot(BaseModel):
     description:str 
 
 class conversation(BaseModel): 
-    question: str
-    Ai_response: str  
+    question: str = ""  # Allow empty string
+    Ai_response: str = ""  # Allow empty string
+    
+    class Config:
+        extra = "ignore"  # Ignore any additional fields  
     
 class ChatRequest(BaseModel): 
     question: str
@@ -28,6 +31,9 @@ class ChatRequest(BaseModel):
 class ChatHistorySave(BaseModel):
     namespace_id: str
     messages: List[conversation]
+
+class ResetInterviewDTO(BaseModel):
+    namespace_id: str
 
 class SettingsUpdate(BaseModel):
     theme: str

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,UploadFile,File,BackgroundTasks,Form,Request,Depends
-from models.dto import DeleteFileDTO,ChatRequest,CreateBot,DeleteFilesDTO
+from models.dto import DeleteFileDTO,ChatRequest,CreateBot,DeleteFilesDTO,ChatHistorySave,ResetInterviewDTO
 from services.chat_bot_service import ChatBot
 from typing import List
 from services.pinecone_service import PineconeService
@@ -25,24 +25,38 @@ async def chatConversation(data: ChatRequest):
     return await chatBotService.chat_conversation(data)
 
 @router.post("/reset",dependencies=[Depends(get_current_token)])
-async def resetInterview(namespace_id: str):
-    return await chatBotService.reset_session(namespace_id)
+async def resetInterview(data: ResetInterviewDTO):
+    return await chatBotService.reset_session(data.namespace_id)
 
 @router.post("/history",dependencies=[Depends(get_current_token)])
-async def saveHistory(request: Request, namespace_id: str, messages: list):
-    return await chatBotService.save_history(request, namespace_id, messages)
+async def saveHistory(request: Request, data: ChatHistorySave):
+    return await chatBotService.save_history(request, data.namespace_id, data.messages)
 
 @router.get("/history",dependencies=[Depends(get_current_token)])
 async def getHistory(request: Request, namespace_id: str):
     return await chatBotService.get_history(request, namespace_id)
 
 @router.post("/history/pdf",dependencies=[Depends(get_current_token)])
-async def saveHistoryPdf(request: Request, namespace_id: str, messages: list):
-    return await chatBotService.save_history_pdf(request, namespace_id, messages)
+async def saveHistoryPdf(request: Request, data: ChatHistorySave):
+    return await chatBotService.save_history_pdf(request, data.namespace_id, data.messages)
+
+@router.post("/report/detailed",dependencies=[Depends(get_current_token)])
+async def generateDetailedReport(request: Request, data: ChatHistorySave):
+    try:
+        print(f"Received request for detailed report: namespace_id={data.namespace_id}, messages_count={len(data.messages)}")
+        return await chatBotService.generate_detailed_report(request, data.namespace_id, data.messages)
+    except Exception as e:
+        print(f"Error in generateDetailedReport endpoint: {str(e)}")
+        from utils.exception import error
+        return error(f"Failed to generate report: {str(e)}")
 
 @router.get("/{id}",dependencies=[Depends(get_current_token)])
 async def getBotById(id: str):
     return await chatBotService.getBotById(id)
+
+@router.delete("/{id}",dependencies=[Depends(get_current_token)])
+async def deleteBot(id: str):
+    return await chatBotService.deleteBot(id)
 
 # @router.post("/fileUpload")
 # async def upload(namespace_id: str= Form(...),files: List[UploadFile] = File(...),backgroundTasks: BackgroundTasks = None):
