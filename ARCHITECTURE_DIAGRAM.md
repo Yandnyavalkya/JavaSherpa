@@ -268,15 +268,15 @@ graph TD
         B --> D[ChatBot Router]
         
         D --> E[ChatBot Endpoints]
-        E --> F[/chat - Interview conversation]
-        E --> G[/report/detailed - Generate report]
-        E --> H[/history - Save/Get history]
-        E --> I[/reset - Reset session]
+        E --> F["POST /chat<br/>Interview conversation"]
+        E --> G["POST /report/detailed<br/>Generate report"]
+        E --> H["POST /history<br/>Save/Get history"]
+        E --> I["POST /reset<br/>Reset session"]
         
         C --> J[User Endpoints]
-        J --> K[/login - Authentication]
-        J --> L[/register - Create account]
-        J --> M[/settings - User preferences]
+        J --> K["POST /login<br/>Authentication"]
+        J --> L["POST /register<br/>Create account"]
+        J --> M["GET/POST /settings<br/>User preferences"]
         
         F --> N[ChatBot Service]
         G --> N
