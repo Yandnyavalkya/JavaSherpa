@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ApiService from "../../services/Api.service";
 import StarBackground from "../../components/StarBackground/StarBackground";
+import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -50,6 +51,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <StarBackground />
+      <div className="theme-toggle-wrapper">
+        <ThemeToggle />
+      </div>
       <div className="login-content">
         <div className="login-center">
           <div className="login-card">

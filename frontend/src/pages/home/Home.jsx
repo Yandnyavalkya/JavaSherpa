@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import "./Home.scss";
 import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
 import StarBackground from "../../components/StarBackground/StarBackground";
+import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
+import Logo from "../../components/Logo/Logo";
 import { 
-  FaJava, 
   FaRocket, 
   FaBullseye, 
   FaMicrophone, 
@@ -26,10 +27,10 @@ const Home = () => {
       <nav className="home-header">
         <div className="home-header-container">
           <Link to="/" className="home-logo">
-            <FaJava className="java-icon" />
-            <span className="logo-text">JavaSherpa</span>
+            <Logo size="medium" />
           </Link>
           <div className="home-nav-buttons">
+            <ThemeToggle />
             <Link to="/login" className="btn btn-outline-primary">
               Login
             </Link>
@@ -102,8 +103,7 @@ const Home = () => {
         <div className="footer-container">
           <div className="footer-section">
             <div className="footer-logo">
-              <FaJava className="java-icon" />
-              <span className="logo-text">JavaSherpa</span>
+              <Logo size="small" />
             </div>
             <p className="footer-description">
               JavaSherpa is a platform focused on hands-on learning, collaboration, 

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Header.scss";
 import { removeUser } from "../../utils/localStorage";
-import { getVariable } from "../../utils/localStorage";
 import SettingsModal from "../../components/settings.modal";
-import { FaJava } from "react-icons/fa";
+import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
+import Logo from "../../components/Logo/Logo";
 
 const Header = () => {
   const location = useLocation();
@@ -16,20 +16,12 @@ const Header = () => {
     navigate("/login");
   };
 
-  useEffect(() => {
-    // Always set dark theme
-    try {
-      document.documentElement.setAttribute("data-bs-theme", "dark");
-    } catch (_) {}
-  }, []);
-
   return (
     <>
       <nav className="navbar navbar-expand-lg header shadow-sm">
         <div className="container">
           <Link className="navbar-brand" to="/default/bot-list">
-            <FaJava className="java-icon" />
-            <span className="logo-text">JavaSherpa</span>
+            <Logo size="medium" showText={true} />
           </Link>
 
           <button
@@ -58,6 +50,10 @@ const Header = () => {
                 >
                   Home
                 </Link>
+              </li>
+
+              <li className="nav-item ms-lg-3 d-flex align-items-center">
+                <ThemeToggle />
               </li>
 
               <li

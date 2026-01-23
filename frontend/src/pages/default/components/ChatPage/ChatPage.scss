@@ -1,5 +1,5 @@
 .chat-page {
-  background: radial-gradient(circle at center, #1a1a1a, #000000);
+  background: var(--bg-gradient);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -9,7 +9,7 @@
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 
   &::before {
     content: "";
@@ -42,25 +42,23 @@
     50% { opacity: 1; }
   }
 
-  .chat-card {
-    height: calc(100vh - 140px);
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(to bottom right, rgba(147, 51, 234, 0.3), rgba(6, 182, 212, 0.3));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-radius: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 
-      0 20px 60px rgba(0, 0, 0, 0.5),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    .chat-card {
+      height: calc(100vh - 140px);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 1.5rem;
+      border: 1px solid var(--border-secondary);
+      box-shadow: var(--shadow-lg);
     animation: slideInUp 0.6s ease-out;
     position: relative;
     z-index: 1;
     overflow: hidden;
 
     .chat-header {
-      background: rgba(0, 0, 0, 0.3);
+      background: var(--bg-tertiary);
       backdrop-filter: blur(15px) saturate(180%);
       -webkit-backdrop-filter: blur(15px) saturate(180%);
       position: sticky;
@@ -68,7 +66,7 @@
       z-index: 3;
       flex-wrap: wrap;
       gap: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-secondary);
       padding: 1.5rem 2rem;
 
       h5 {
@@ -84,7 +82,7 @@
       }
 
       small {
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-tertiary);
         font-weight: 500;
       }
 
@@ -170,7 +168,7 @@
       overflow-y: auto;
       overflow-x: hidden;
       padding: 2rem;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--bg-tertiary);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       scroll-behavior: smooth;
@@ -216,20 +214,20 @@
         }
 
         .user-msg {
-          background: linear-gradient(to right, #7e22ce, #db2777, #0891b2);
+          background: var(--user-msg-bg);
           color: #fff;
           border-bottom-right-radius: 0.25rem;
-          box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+          box-shadow: var(--shadow-accent);
         }
 
         .bot-msg {
-          background: rgba(128, 128, 128, 0.3);
+          background: var(--bot-msg-bg);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
-          color: rgba(255, 255, 255, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-secondary);
           border-bottom-left-radius: 0.25rem;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+          box-shadow: var(--shadow-sm);
         }
 
         .ai-response-content {
@@ -479,11 +477,11 @@
     }
 
     .chat-input {
-      background: rgba(0, 0, 0, 0.3);
+      background: var(--bg-tertiary);
       backdrop-filter: blur(15px) saturate(180%);
       -webkit-backdrop-filter: blur(15px) saturate(180%);
       border-radius: 0 0 1.5rem 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--border-secondary);
       padding: 1.5rem 2rem;
 
       form {
@@ -494,11 +492,11 @@
 
       input {
         flex: 1;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-input);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        color: #ffffff;
-        border: 2px solid rgba(102, 126, 234, 0.3);
+        color: var(--text-primary);
+        border: 2px solid var(--border-primary);
         border-radius: 1rem;
         padding: 1rem 1.5rem;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -506,16 +504,16 @@
 
         &:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: var(--accent-primary);
           box-shadow: 
             0 0 0 4px rgba(102, 126, 234, 0.2),
-            0 4px 16px rgba(102, 126, 234, 0.3);
+            var(--shadow-md);
           transform: translateY(-2px);
-          background: rgba(255, 255, 255, 0.15);
+          background: var(--bg-input-focus);
         }
 
         &::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-muted);
         }
       }
 

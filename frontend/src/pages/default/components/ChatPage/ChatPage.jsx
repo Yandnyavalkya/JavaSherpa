@@ -11,7 +11,6 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { 
-  FaJava, 
   FaMicrophone, 
   FaDownload, 
   FaVolumeUp, 
@@ -24,6 +23,7 @@ import {
   FaShare,
   FaTimes
 } from "react-icons/fa";
+import Logo from "../../../../components/Logo/Logo";
 
 const ChatPage = () => {
   let [searchParams] = useSearchParams();
@@ -678,8 +678,9 @@ const ChatPage = () => {
           <div className="card chat-card shadow-sm rounded-4">
             <div className="chat-header border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
               <div>
-                <h5 className="fw-bold text-primary mb-0">
-                  <FaJava className="me-2" /> JavaSherpa Interview Session
+                <h5 className="fw-bold text-primary mb-0 d-flex align-items-center">
+                  <Logo size="small" showText={false} className="me-2" />
+                  JavaSherpa Interview Session
                 </h5>
                 <small className="text-muted">AI-Powered Java Interview Practice with Voice Commands</small>
               </div>

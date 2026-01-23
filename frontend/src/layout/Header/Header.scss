@@ -4,52 +4,20 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(10, 14, 39, 0.7);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
   padding: 1.5rem 2rem;
   transition: all 0.3s ease;
 
   .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     text-decoration: none;
     color: inherit;
     transition: transform 0.3s ease;
-
-    .java-icon {
-      font-size: 2rem;
-      color: #a855f7;
-      filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5));
-      animation: float-logo 3s ease-in-out infinite;
-      display: inline-flex;
-      align-items: center;
-      will-change: transform;
-      transform-origin: center;
-      position: relative;
-      isolation: isolate; /* Isolate transform context */
-      
-      svg {
-        width: 2rem;
-        height: 2rem;
-        display: block;
-      }
-    }
-
-    .logo-text {
-      font-size: 1.75rem;
-      font-weight: 900;
-      background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      background-size: 200% 200%;
-      animation: gradient-shift 3s ease infinite;
-      letter-spacing: -0.02em;
-    }
 
     &:hover {
       transform: scale(1.05);
@@ -57,7 +25,7 @@
   }
 
   .nav-link {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-tertiary);
     font-weight: 600;
     margin: 0 12px;
     position: relative;
@@ -67,12 +35,12 @@
     font-size: 0.95rem;
 
     &.active {
-      color: #667eea;
+      color: var(--accent-primary);
       background: rgba(102, 126, 234, 0.15);
     }
 
     &:hover {
-      color: #667eea;
+      color: var(--accent-primary);
       background: rgba(102, 126, 234, 0.1);
       transform: translateY(-1px);
     }
@@ -118,8 +86,8 @@
   }
 
   .btn-outline-secondary {
-    border: 2px solid rgba(102, 126, 234, 0.3);
-    color: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--border-primary);
+    color: var(--text-secondary);
     background: rgba(102, 126, 234, 0.1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -130,9 +98,9 @@
 
     &:hover { 
       background: rgba(102, 126, 234, 0.2);
-      border-color: rgba(102, 126, 234, 0.5);
+      border-color: var(--accent-primary);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      box-shadow: var(--shadow-sm);
     }
   }
 

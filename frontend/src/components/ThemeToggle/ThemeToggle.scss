@@ -1,0 +1,118 @@
+.theme-toggle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .theme-toggle-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--theme-toggle-bg, rgba(102, 126, 234, 0.1));
+    border: 2px solid var(--theme-toggle-border, rgba(102, 126, 234, 0.3));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    &:hover {
+      background: var(--theme-toggle-bg-hover, rgba(102, 126, 234, 0.2));
+      border-color: var(--theme-toggle-border-hover, rgba(102, 126, 234, 0.5));
+      box-shadow: 0 4px 12px var(--theme-toggle-shadow, rgba(102, 126, 234, 0.3));
+    }
+  }
+
+  .theme-icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 24px;
+    height: 24px;
+
+    &.moon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+
+    &.sun {
+      opacity: 1;
+      transform: rotate(180deg) scale(1);
+    }
+
+    .icon {
+      width: 100%;
+      height: 100%;
+      color: var(--theme-icon-color, #667eea);
+      transition: all 0.3s ease;
+    }
+  }
+
+  // Dark theme specific styles
+  :global(.dark-theme) & {
+    .theme-toggle-inner {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+
+      &:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+    }
+
+    .theme-icon .icon {
+      color: #a855f7;
+    }
+  }
+
+  // Light theme specific styles
+  :global(.light-theme) & {
+    .theme-toggle-inner {
+      background: rgba(102, 126, 234, 0.15);
+      border-color: rgba(102, 126, 234, 0.4);
+
+      &:hover {
+        background: rgba(102, 126, 234, 0.25);
+        border-color: rgba(102, 126, 234, 0.6);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+    }
+
+    .theme-icon .icon {
+      color: #f59e0b;
+    }
+  }
+}
+
+// Compact version for mobile
+.theme-toggle.compact {
+  width: 40px;
+  height: 40px;
+
+  .theme-icon {
+    width: 20px;
+    height: 20px;
+  }
+}

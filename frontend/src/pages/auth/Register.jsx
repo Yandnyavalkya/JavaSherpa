@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../services/Api.service";
 import { toast } from "react-toastify";
 import StarBackground from "../../components/StarBackground/StarBackground";
+import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
 
 const Register = () => {
   let navigate = useNavigate();
@@ -61,6 +62,9 @@ const Register = () => {
   return (
     <div className="register-container">
       <StarBackground />
+      <div className="theme-toggle-wrapper">
+        <ThemeToggle />
+      </div>
       <div className="register-content">
         <div className="register-center">
           <div className="register-card">
