@@ -101,13 +101,60 @@
       margin-bottom: 1.5rem;
       line-height: 1.2;
       animation: fadeInUp 0.8s ease-out;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
 
-      .gradient-text {
-        background: linear-gradient(135deg, #f093fb 0%, #667eea 50%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        display: block;
+      .hero-logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: -0.5rem;
+        width: 100%;
+        
+        .logo-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transform: none !important;
+          transition: none !important;
+          
+          &:hover {
+            transform: none !important;
+          }
+          
+          &.logo-large {
+            .logo-image {
+              max-width: 500px;
+              max-height: 500px;
+              width: auto;
+              height: auto;
+              
+              @media (max-width: 968px) {
+                max-width: 350px;
+                max-height: 350px;
+              }
+              
+              @media (max-width: 768px) {
+                max-width: 250px;
+                max-height: 250px;
+              }
+              
+              @media (max-width: 480px) {
+                max-width: 200px;
+                max-height: 200px;
+              }
+            }
+          }
+        }
+        
+        .logo-image {
+          filter: drop-shadow(0 4px 20px rgba(102, 126, 234, 0.3));
+          transition: none !important;
+          transform: none !important;
+          animation: none !important;
+        }
       }
 
       .hero-subtitle {
@@ -115,7 +162,8 @@
         font-weight: 700;
         color: var(--text-secondary);
         display: block;
-        margin-top: 0.5rem;
+        margin-top: -0.5rem;
+        line-height: 1;
       }
     }
 
@@ -417,8 +465,6 @@
 
   @media (max-width: 968px) {
     .home-hero .hero-title {
-      font-size: 2.5rem;
-
       .hero-subtitle {
         font-size: 1.75rem;
       }

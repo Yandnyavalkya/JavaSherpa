@@ -44,8 +44,9 @@ const Home = () => {
       <div className="home-content">
         <div className="home-hero">
           <h1 className="hero-title">
-            <span className="gradient-text">JavaSherpa</span>
-            <br />
+            <div className="hero-logo">
+              <Logo size="large" showText={false} />
+            </div>
             <span className="hero-subtitle">Your AI-Powered Java Interview Guide</span>
           </h1>
           <p className="hero-description">
