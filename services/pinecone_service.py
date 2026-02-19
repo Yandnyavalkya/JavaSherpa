@@ -116,6 +116,50 @@ class PineconeService:
         self.asked_questions_by_topic = {}  # topic -> set of asked questions to avoid repetition
         self.interview_summary = {}  # namespace_id -> str (store summary text separately)
 
+    def _extract_previous_user_answers(self, chat_history: str) -> list:
+        """Extract all previous user answers from chat history for repeat detection."""
+        if not chat_history or not chat_history.strip():
+            return []
+        answers = []
+        parts = chat_history.split("User:")
+        for part in parts[1:]:  # Skip first segment (before any User:)
+            if "AI:" in part:
+                answer = part.split("AI:")[0].strip()
+            else:
+                answer = part.strip()
+            if answer and len(answer) > 2:
+                answers.append(answer)
+        return answers
+
+    def _normalize_for_comparison(self, text: str) -> str:
+        """Normalize text for repeat detection: lowercase, collapse whitespace."""
+        if not text:
+            return ""
+        return re.sub(r'\s+', ' ', text.lower().strip())
+
+    def _is_repeated_answer(self, current_answer: str, chat_history: str) -> bool:
+        """Check if the current answer was already given to a previous question."""
+        current_lower = current_answer.lower().strip()
+        # Don't flag "I don't know" type answers as repeats - they're valid honest responses for each question
+        unknown_phrases = [
+            "don't know", "dont know", "i don't know", "no idea", "not sure",
+            "unsure", "i'm not sure", "im not sure", "maybe", "partly", "somewhat"
+        ]
+        if any(phrase in current_lower for phrase in unknown_phrases):
+            return False
+
+        previous_answers = self._extract_previous_user_answers(chat_history)
+        if not previous_answers:
+            return False
+        current_normalized = self._normalize_for_comparison(current_answer)
+        if not current_normalized or len(current_normalized) < 5:
+            return False  # Very short answers (e.g. topic selection) - skip
+        for prev in previous_answers:
+            prev_normalized = self._normalize_for_comparison(prev)
+            if prev_normalized and len(prev_normalized) >= 5 and current_normalized == prev_normalized:
+                return True
+        return False
+
     async def reset_session(self, namespace_id: str):
         self.session_questions[namespace_id] = []
         self.current_index[namespace_id] = 0
@@ -583,6 +627,19 @@ Structure your response EXACTLY like this:
                     self.interview_completed[namespace_id] = True
                 return
 
+            # Check for repeated answer (same answer as a previous question)
+            if self._is_repeated_answer(question, chatHistory):
+                question_index = current_idx - 1
+                if namespace_id not in self.question_scores:
+                    self.question_scores[namespace_id] = {}
+                self.question_scores[namespace_id][question_index] = 0  # No credit for repeated answer
+                yield (
+                    "You have repeated the answer from a previous question. "
+                    "Please provide a unique answer for this question to receive credit.\n\n"
+                    f"**Question {current_idx}:** {last_question}"
+                )
+                return
+
             # Normal answer evaluation
             eval_prompt = f"""
 You are JavaShepa, a friendly and encouraging AI Java interviewer. Speak directly to the student in a natural, conversational way - like you're having a one-on-one conversation with them.
@@ -654,10 +711,35 @@ FORMATTING REQUIREMENTS (CRITICAL):
 - CRITICAL: Do NOT include phrases like "Let's move on", "Let's move on to the next question", "Next question", "Moving forward", "Let's proceed", or any reference to the next interview question in your response. The system will automatically handle moving to the next question.
 - CRITICAL: When asking a follow-up question, just ask the question directly and naturally. Do NOT preface it with "Let's move on" or similar phrases.
 - IMPORTANT: Only ask ONE follow-up question. Do NOT include the next interview question in your response.
+
+SCORING (REQUIRED): At the very end of your response, on a new line by itself, output exactly: SCORE: X
+Where X is one of: 0, 0.5, 0.75, or 1.0
+- 1.0 = Fully correct, complete answer addressing the question
+- 0.75 = Mostly correct with minor gaps
+- 0.5 = Partially correct or incomplete
+- 0 = Incorrect, off-topic, or "I don't know" with no attempt
+
+Be strict: only give 1.0 for answers that fully and accurately address the specific question asked.
             """
 
             chain = llm | StrOutputParser()
             feedback = "".join([chunk for chunk in chain.stream(eval_prompt)])
+
+            # Parse LLM-assigned score from feedback
+            question_score = 0
+            score_match = re.search(r'SCORE:\s*(0|0\.5|0\.75|1\.0)', feedback, re.IGNORECASE)
+            if score_match:
+                question_score = float(score_match.group(1))
+                feedback = re.sub(r'\s*SCORE:\s*(0|0\.5|0\.75|1\.0)\s*', '', feedback, flags=re.IGNORECASE).strip()
+            else:
+                # Fallback: use stricter keyword scoring if LLM didn't output score
+                answer_lower = question.lower()
+                if any(word in answer_lower for word in ["maybe", "partly", "somewhat", "not sure", "don't know", "dont know", "i don't know"]):
+                    question_score = 0.5
+                elif len(answer_lower.split()) > 10:
+                    question_score = 0.75
+
+            self.score[namespace_id] += question_score
 
             # Clean feedback to remove any "next question" references that LLM might have included
             # Remove the entire pattern "Let's move on to the next question: [anything]" including the question that follows
@@ -671,22 +753,7 @@ FORMATTING REQUIREMENTS (CRITICAL):
             feedback = re.sub(r'(?i)^\s*(can\s+you\s+explain\s+the\s+concept\s+of\s+inheritance[^\n]*)', '', feedback, flags=re.MULTILINE)
             feedback = feedback.strip()
 
-            # Rough scoring logic - improved scoring
-            answer_lower = question.lower()
-            question_score = 0
-            if any(word in answer_lower for word in ["primitive", "object", "reference", "memory", "value", "inheritance", "polymorphism", "encapsulation", "interface", "abstract", "correct", "right", "yes", "explain", "example"]):
-                question_score = 1.0
-                self.score[namespace_id] += 1
-            elif any(word in answer_lower for word in ["maybe", "partly", "somewhat", "not sure", "don't know", "dont know", "i don't know"]):
-                question_score = 0.5
-                self.score[namespace_id] += 0.5
-            else:
-                # Check if answer seems comprehensive
-                if len(answer_lower.split()) > 10:  # More detailed answer
-                    question_score = 0.75
-                    self.score[namespace_id] += 0.75
-            
-            # Store per-question score
+            # Store per-question score (question_score was parsed from LLM above)
             question_index = current_idx - 1  # Current question index (0-based)
             if namespace_id not in self.question_scores:
                 self.question_scores[namespace_id] = {}

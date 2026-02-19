@@ -8,8 +8,8 @@ import ApiService, {
 import { PulseLoader } from "react-spinners";
 import { getVariable, removeVariable } from "../../../../utils/localStorage";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from "remark-gfm";
+import { toast } from "react-toastify";
 import { 
   FaMicrophone, 
   FaDownload, 
@@ -293,6 +293,10 @@ const ChatPage = () => {
                 setReportBlob(response.data);
                 setReportUrl(url);
                 setShowReportModal(true);
+                toast.info(
+                  "An email will be sent shortly with the following attachments to your registered email address: Interview Transcript (PDF), Detailed Report (PDF), and Summary Audio (MP3).",
+                  { autoClose: 6000 }
+                );
               } else {
                 setReportError('Unexpected response format.');
                 alert('Unexpected response format from server.');
@@ -304,6 +308,10 @@ const ChatPage = () => {
             setReportBlob(response.data);
             setReportUrl(url);
             setShowReportModal(true);
+            toast.info(
+              "An email will be sent shortly with the following attachments to your registered email address: Interview Transcript (PDF), Detailed Report (PDF), and Summary Audio (MP3).",
+              { autoClose: 6000 }
+            );
           } else {
             setReportError('Response is not a PDF file.');
             alert('Response is not a PDF file.');
@@ -380,17 +388,9 @@ const ChatPage = () => {
   };
 
   // Copy code to clipboard
-  const [copiedCodeId, setCopiedCodeId] = useState(null);
-  
-  const copyToClipboard = (text, codeId) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedCodeId(codeId);
-      setTimeout(() => {
-        setCopiedCodeId(null);
-      }, 2000);
-    }).catch(err => {
-      console.error('Failed to copy code:', err);
-    });
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   };
 
   const getPreferredVoice = () => {
@@ -618,16 +618,38 @@ const ChatPage = () => {
     let placeholderIndex = 0;
     
     // Extract and protect code blocks (handle both with and without newline after language)
+    // Match code blocks more carefully - handle cases where language identifier might be malformed
     formatted = formatted.replace(/```[\w]*[\s\S]*?```/g, (match) => {
+      // Fix common malformed patterns before storing
+      let fixedMatch = match;
+      
+      // Fix: ```java followed immediately by text (no newline) - like ```javae or ```javaVehicle
+      fixedMatch = fixedMatch.replace(/```(\w+)([A-Za-z])/g, "```$1\n$2");
+      
+      // Fix: Remove language identifier text that appears in code (like JAVAVEHIC)
+      // Pattern: ```java\nJAVAVEHIC\n1\ne vehicle...
+      fixedMatch = fixedMatch.replace(/```(\w+)\n([A-Z]{3,})\s*\n?(\d+\.?\s*\n?)?/g, "```$1\n");
+      
+      // Fix: Remove line numbers at start
+      fixedMatch = fixedMatch.replace(/```(\w+)\n(\d+\.?\s*\n?)/g, "```$1\n");
+      
       const placeholder = `__CODE_BLOCK_${placeholderIndex}__`;
-      codeBlockPlaceholders.push(match);
+      codeBlockPlaceholders.push(fixedMatch);
       placeholderIndex++;
       return placeholder;
     });
     
-    // Fix code blocks that appear immediately after text without spacing
-    // Pattern: text```java or text```java\n or text:```java
+    // Ensure questions are properly separated - detect question patterns and add paragraph breaks
+    // Pattern: text ending with ? followed by more text should have a break
     formatted = formatted
+      // Add paragraph break after questions (ending with ?) if followed by text (not code block)
+      .replace(/([^.\n])\?([^\n])(?!__CODE_BLOCK)/g, "$1?\n\n$2")
+      // Add paragraph break before questions that start with common question words
+      .replace(/([^.\n])(\b(Can you|What|How|Why|When|Where|Which|Who|Do you|Are you|Is there|Would you|Could you|Tell me|Explain|Describe)\b[^\n]*\?)/gi, "$1\n\n$2")
+      // Ensure questions after periods have proper spacing
+      .replace(/(\.)(\s*)(\b(Can you|What|How|Why|When|Where|Which|Who|Do you|Are you|Is there|Would you|Could you|Tell me|Explain|Describe)\b[^\n]*\?)/gi, "$1\n\n$3")
+      // Add break after sentences ending with period if followed by a question
+      .replace(/([.!])(\s+)(\b(Can you|What|How|Why|When|Where|Which|Who|Do you|Are you|Is there|Would you|Could you|Tell me|Explain|Describe)\b[^\n]*\?)/gi, "$1\n\n$3")
       // Fix code blocks that appear right after text (no newline before ```)
       .replace(/([^\n])(__CODE_BLOCK_\d+__)/g, "$1\n\n$2")
       // Fix code blocks that appear right after colon or period
@@ -659,9 +681,29 @@ const ChatPage = () => {
     // Restore code blocks with their original formatting
     codeBlockPlaceholders.forEach((codeBlock, index) => {
       // Fix malformed code blocks where language is concatenated with code
-      let fixedCodeBlock = codeBlock.replace(/```(\w+)([A-Za-z])/g, "```$1\n$2");
-      // Ensure proper spacing after language identifier
+      let fixedCodeBlock = codeBlock;
+      
+      // Fix: ```java followed by text without newline (e.g., ```javae or ```javaVehicle)
+      // This handles cases like ```javae vehicle = ... or ```javaJAVAVEHIC
+      fixedCodeBlock = fixedCodeBlock.replace(/```(\w+)([A-Za-z])/g, "```$1\n$2");
+      
+      // Fix: ```java followed by any non-whitespace character (should have newline)
       fixedCodeBlock = fixedCodeBlock.replace(/(```[\w]+)([^\n\s])/g, "$1\n$2");
+      
+      // Fix: Remove language identifier text that leaked into code content
+      // This handles cases where backend sends: ```java\njavae vehicle = ...
+      fixedCodeBlock = fixedCodeBlock.replace(/```(\w+)\n\1([a-z])/gi, "```$1\n$2");
+      
+      // Fix: Remove uppercase language identifiers at start of code (like JAVAVEHIC, JAVA, etc.)
+      // Match patterns like: ```java\nJAVAVEHIC\n1\ne vehicle = ...
+      fixedCodeBlock = fixedCodeBlock.replace(/```(\w+)\n([A-Z]{2,})\s*\n?(\d+\.?\s*\n?)?/g, "```$1\n");
+      
+      // Fix: Remove line numbers at start of code (standalone or after language identifier)
+      fixedCodeBlock = fixedCodeBlock.replace(/```(\w+)\n(\d+\.?\s*\n?)/g, "```$1\n");
+      
+      // Fix: Remove any remaining uppercase words at the very start (like JAVAVEHIC)
+      fixedCodeBlock = fixedCodeBlock.replace(/```(\w+)\n([A-Z]{3,})\s*/g, "```$1\n");
+      
       // Ensure proper spacing before closing backticks
       fixedCodeBlock = fixedCodeBlock.replace(/([^\n])(```\s*$)/gm, "$1\n$2");
       
@@ -676,64 +718,65 @@ const ChatPage = () => {
       <div className="row justify-content-center">
         <div className="col-12 col-xl-11 col-lg-12">
           <div className="card chat-card shadow-sm rounded-4">
-            <div className="chat-header border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
-              <div>
-                <h5 className="fw-bold text-primary mb-0 d-flex align-items-center">
-                  <Logo size="small" showText={false} className="me-2" />
-                  JavaSherpa Interview Session
-                </h5>
-                <small className="text-muted">AI-Powered Java Interview Practice with Voice Commands</small>
-              </div>
-              <div className="d-flex gap-2">
-                <Button
-                  variant="outline-warning"
-                  className="rounded-pill px-3"
-                  onClick={clearChat}
-                  title="Clear chat and restart interview"
-                >
-                  <FaRedo className="me-2" /> Restart Interview
-                </Button>
-                <Button
-                  variant="outline-info"
-                  className="rounded-pill px-3"
-                  onClick={downloadPdf}
-                  disabled={messages.length === 0}
-                  title="Download interview transcript as PDF"
-                >
-                  <FaDownload className="me-2" /> Download Transcript
-                </Button>
-                <Button
-                  variant="outline-primary"
-                  className="rounded-pill px-3"
-                  onClick={downloadDetailedReport}
-                  disabled={messages.length === 0}
-                  title="Download detailed report with per-question scoring and analysis"
-                >
-                  <FaDownload className="me-2" /> Download Detailed Report
-                </Button>
-                <Button
-                  variant={ttsEnabled ? "outline-success" : "outline-secondary"}
-                  className="rounded-pill px-3"
-                  onClick={() => setTtsEnabled((v) => !v)}
-                  title={ttsEnabled ? "Disable voice replies" : "Enable voice replies"}
-                >
-                  {ttsEnabled ? (
-                    <>
-                      <FaVolumeUp className="me-2" /> Voice On
-                    </>
-                  ) : (
-                    <>
-                      <FaVolumeMute className="me-2" /> Voice Off
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline-secondary"
-                  className="rounded-pill px-4"
-                  onClick={() => navigate(-1)}
-                >
-                  ← Back
-                </Button>
+            <div className="chat-header border-bottom px-4 py-3">
+              <div className="chat-header-top d-flex justify-content-between align-items-center">
+                <div className="chat-header-title-section d-flex align-items-center">
+                  <h5 className="fw-bold text-primary mb-0 d-flex align-items-center">
+                    <Logo size="small" showText={false} className="me-2" />
+                    JavaSherpa Interview Session
+                  </h5>
+                </div>
+                <div className="chat-header-buttons d-flex gap-2">
+                  <Button
+                    variant="outline-warning"
+                    className="rounded-pill px-3"
+                    onClick={clearChat}
+                    title="Clear chat and restart interview"
+                  >
+                    <FaRedo className="me-2" /> Restart Interview
+                  </Button>
+                  <Button
+                    variant="outline-info"
+                    className="rounded-pill px-3"
+                    onClick={downloadPdf}
+                    disabled={messages.length === 0}
+                    title="Download interview transcript as PDF"
+                  >
+                    <FaDownload className="me-2" /> Download Transcript
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    className="rounded-pill px-3"
+                    onClick={downloadDetailedReport}
+                    disabled={messages.length === 0}
+                    title="Download detailed report with per-question scoring and analysis"
+                  >
+                    <FaDownload className="me-2" /> Download Detailed Report
+                  </Button>
+                  <Button
+                    variant={ttsEnabled ? "outline-success" : "outline-secondary"}
+                    className="rounded-pill px-3"
+                    onClick={() => setTtsEnabled((v) => !v)}
+                    title={ttsEnabled ? "Disable voice replies" : "Enable voice replies"}
+                  >
+                    {ttsEnabled ? (
+                      <>
+                        <FaVolumeUp className="me-2" /> Voice On
+                      </>
+                    ) : (
+                      <>
+                        <FaVolumeMute className="me-2" /> Voice Off
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    className="rounded-pill px-4"
+                    onClick={() => navigate(-1)}
+                  >
+                    ← Back
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -757,104 +800,157 @@ const ChatPage = () => {
                     {msg.Ai_response && (
                       <div className="ai-response-content">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
-                            code: ({ node, inline, className, children, ...props }) => {
-                              const match = /language-(\w+)/.exec(className || '');
-                              const language = match ? match[1] : '';
+                            pre: ({ children, ...props }) => {
+                              const codeProps = children?.props || {};
+                              const match = /language-(\w+)/.exec(codeProps.className || "");
                               
-                              // Extract code string, preserving all formatting
-                              let codeString = '';
-                              if (Array.isArray(children)) {
-                                // If children is an array, join while preserving structure
-                                codeString = children.map(child => {
-                                  if (typeof child === 'string') return child;
-                                  if (typeof child === 'object' && child !== null) {
-                                    // Handle React elements - extract text content
-                                    if (child.props && child.props.children) {
-                                      return String(child.props.children);
-                                    }
-                                    return String(child);
-                                  }
-                                  return '';
+                              // Extract code string - handle both string and array children
+                              let codeString = "";
+                              if (typeof codeProps.children === 'string') {
+                                codeString = codeProps.children;
+                              } else if (Array.isArray(codeProps.children)) {
+                                codeString = codeProps.children.map(c => {
+                                  if (typeof c === 'string') return c;
+                                  if (c?.props?.children) return String(c.props.children);
+                                  return String(c || '');
                                 }).join('');
+                              } else if (codeProps.children?.props?.children) {
+                                codeString = String(codeProps.children.props.children);
                               } else {
-                                codeString = String(children || '');
+                                codeString = String(codeProps.children || "");
                               }
                               
-                              // Remove trailing newline if present
-                              codeString = codeString.replace(/\n$/, '');
+                              // Remove trailing newline
+                              codeString = codeString.replace(/\n$/, "");
                               
-                              // If code appears to be on a single line (no newlines but has Java keywords), try to format it
-                              if (!inline && match && language === 'java' && !codeString.includes('\n') && codeString.length > 50) {
-                                // Attempt to format Java code by adding line breaks after semicolons, braces, etc.
-                                codeString = codeString
-                                  .replace(/;\s*/g, ';\n')
-                                  .replace(/\{\s*/g, '{\n')
-                                  .replace(/\}\s*/g, '\n}\n')
-                                  .replace(/\/\/\s*([^\n]+)/g, '\n// $1\n')
-                                  .replace(/\n{3,}/g, '\n\n')
-                                  .replace(/^\n+|\n+$/g, '')
-                                  .split('\n')
-                                  .map(line => {
-                                    // Add basic indentation based on braces
-                                    const openBraces = (line.match(/\{/g) || []).length;
-                                    const closeBraces = (line.match(/\}/g) || []).length;
-                                    // This is a simple heuristic - might need refinement
-                                    return line.trim();
-                                  })
-                                  .filter(line => line.length > 0)
-                                  .join('\n');
+                              // Clean up: Remove any language identifier text that might have leaked into code
+                              if (codeString) {
+                                // Remove language identifiers at the start (case insensitive) - more aggressive
+                                codeString = codeString.replace(/^(java|javascript|js|python|py|html|css|json|xml|sql|bash|sh|yaml|yml|md|markdown|text|plain)\s*/i, '');
+                                
+                                // Remove any uppercase language identifiers (like "JAVAVEHIC", "JAVA", etc.)
+                                // Match patterns like "JAVAVEHIC", "JAVA", "JAVACODE", etc.
+                                codeString = codeString.replace(/^[A-Z]{2,}[A-Z]*\s*/g, '');
+                                
+                                // Remove line numbers at the start (like "1", "1.", etc.)
+                                codeString = codeString.replace(/^\d+\.?\s*\n?/g, '');
+                                
+                                // Remove any remaining uppercase words at the very start that look like language identifiers
+                                codeString = codeString.replace(/^([A-Z]{3,})\s*\n?/g, '');
+                                
+                                // If code is Java and appears to be on a single line, format it
+                                if (match && match[1].toLowerCase() === 'java' && codeString) {
+                                  // Check if code has very few line breaks (likely single-line)
+                                  const lines = codeString.split('\n').filter(l => l.trim().length > 0);
+                                  const isSingleLine = lines.length <= 3 && codeString.length > 30;
+                                  
+                                  if (isSingleLine) {
+                                    // Format Java code by adding line breaks
+                                    let formatted = codeString.trim();
+                                    
+                                    // Fix patterns where text runs into code (like "a//" or "aclass")
+                                    formatted = formatted.replace(/([a-zA-Z0-9])(\/\/)/g, '$1\n$2');
+                                    formatted = formatted.replace(/([a-zA-Z0-9])(class|interface|enum|public|private|protected|static|final|abstract|@Override)/g, '$1\n$2');
+                                    
+                                    // Add line breaks after semicolons (but not inside strings)
+                                    formatted = formatted.replace(/;(?![^"]*"[^"]*;)/g, ';\n');
+                                    
+                                    // Add line breaks after opening braces
+                                    formatted = formatted.replace(/\{/g, '{\n');
+                                    
+                                    // Add line breaks before closing braces
+                                    formatted = formatted.replace(/\}/g, '\n}');
+                                    
+                                    // Add line breaks after class/interface/enum declarations
+                                    formatted = formatted.replace(/(class|interface|enum)\s+(\w+)([^{]*)\{/g, '$1 $2$3 {\n');
+                                    
+                                    // Add line breaks after method declarations
+                                    formatted = formatted.replace(/(\))\s*\{/g, '$1 {\n');
+                                    
+                                    // Add line breaks after @Override
+                                    formatted = formatted.replace(/(@Override)\s*/g, '$1\n');
+                                    
+                                    // Add line breaks before comments
+                                    formatted = formatted.replace(/([^\/\n])\/\//g, '$1\n//');
+                                    
+                                    // Clean up multiple consecutive newlines
+                                    formatted = formatted.replace(/\n{3,}/g, '\n\n');
+                                    
+                                    // Split and add indentation
+                                    const formattedLines = formatted.split('\n');
+                                    let indentLevel = 0;
+                                    const indentSize = 4;
+                                    
+                                    codeString = formattedLines.map(line => {
+                                      const trimmed = line.trim();
+                                      if (!trimmed) return '';
+                                      
+                                      // Decrease indent before closing braces
+                                      if (trimmed.startsWith('}')) {
+                                        indentLevel = Math.max(0, indentLevel - 1);
+                                      }
+                                      
+                                      const indented = ' '.repeat(indentLevel * indentSize) + trimmed;
+                                      
+                                      // Increase indent after opening braces
+                                      if (trimmed.includes('{') && !trimmed.startsWith('}')) {
+                                        indentLevel++;
+                                      }
+                                      
+                                      return indented;
+                                    }).filter(l => l.length > 0).join('\n');
+                                  }
+                                }
+                                
+                                // Trim whitespace but preserve internal formatting
+                                codeString = codeString.trim();
                               }
                               
-                              const codeId = `code-${Math.random().toString(36).substr(2, 9)}`;
-                              const isCopied = copiedCodeId === codeId;
-                              
-                              if (!inline && match) {
+                              if (match && codeString) {
                                 return (
                                   <div className="code-block-wrapper">
                                     <div className="code-block-header">
-                                      <span className="code-language">{language}</span>
-                                      <button 
-                                        className={`copy-code-btn ${isCopied ? 'copied' : ''}`}
-                                        onClick={() => copyToClipboard(codeString, codeId)}
+                                      <span className="code-language">{match[1]}</span>
+                                      <button
+                                        className="code-copy-btn"
+                                        onClick={() => {
+                                          copyToClipboard(codeString);
+                                        }}
                                         title="Copy code"
                                       >
-                                        {isCopied ? (
-                                          <>
-                                            <FaCheck className="me-1" /> Copied!
-                                          </>
-                                        ) : (
-                                          <>
-                                            <FaCopy className="me-1" /> Copy code
-                                          </>
-                                        )}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                        Copy code
                                       </button>
                                     </div>
-                                    <SyntaxHighlighter
-                                      language={language}
-                                      style={vscDarkPlus}
-                                      customStyle={{
-                                        margin: 0,
-                                        borderRadius: '0 0 0.75rem 0.75rem',
-                                        padding: '1rem',
-                                        background: 'rgba(0, 0, 0, 0.8)',
-                                      }}
-                                      PreTag="div"
-                                    >
-                                      {codeString}
-                                    </SyntaxHighlighter>
+                                    <pre {...props}>
+                                      <code>{codeString}</code>
+                                    </pre>
                                   </div>
                                 );
-                              } else {
+                              }
+                              return <pre {...props}>{children}</pre>;
+                            },
+                            code: ({ node, inline, className, children, ...props }) => {
+                              if (inline) {
                                 return (
-                                  <code className="inline-code" {...props}>
+                                  <code className={className} {...props}>
                                     {children}
                                   </code>
                                 );
                               }
+                              return (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              );
                             },
                             p: ({ children, ...props }) => {
-                              // Check if this paragraph contains a follow-up question
+                              // Check if this paragraph contains a follow-up question or any question
                               let text = '';
                               if (typeof children === 'string') {
                                 text = children;
@@ -868,12 +964,14 @@ const ChatPage = () => {
                                 }).join('');
                               }
                               const isFollowUp = /follow-up question/i.test(text);
-                              // Also check if the next sibling paragraph is a question
-                              const hasQuestion = text.includes('?') && (text.length > 20 && text.length < 200);
-                              const shouldHighlight = isFollowUp || (hasQuestion && text.toLowerCase().includes('can you') || text.toLowerCase().includes('what') || text.toLowerCase().includes('how'));
+                              // Detect questions more broadly - ending with ? or starting with question words
+                              const hasQuestion = text.trim().endsWith('?') || 
+                                /^(Can you|What|How|Why|When|Where|Which|Who|Do you|Are you|Is there|Would you|Could you|Tell me|Explain|Describe)/i.test(text.trim());
+                              const shouldHighlight = isFollowUp || (hasQuestion && text.length > 10);
+                              const isQuestion = hasQuestion && !isFollowUp;
                               
                               return (
-                                <p className={`markdown-paragraph ${shouldHighlight ? 'follow-up-question' : ''}`} {...props}>
+                                <p className={`markdown-paragraph ${shouldHighlight ? 'follow-up-question' : ''} ${isQuestion ? 'question-paragraph' : ''}`} {...props}>
                                   {children}
                                 </p>
                               );

@@ -107,8 +107,8 @@
   .navbar-toggler {
     outline: none;
     box-shadow: none;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-secondary) !important;
+    background: var(--bg-input);
     padding: 8px 12px;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
@@ -118,9 +118,15 @@
     }
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-primary);
+      background: var(--bg-input-focus);
     }
+  }
+}
+
+.light-theme .header .navbar-toggler {
+  .navbar-toggler-icon {
+    filter: invert(0);
   }
 }
 

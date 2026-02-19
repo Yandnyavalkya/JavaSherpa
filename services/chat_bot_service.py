@@ -11,7 +11,146 @@ import os
 from config import constants
 load_dotenv()
 
- 
+
+def _run_report_email_background(
+    user_id, user_email, user_name, namespace_id, messages_dict,
+    pdf_path, session_questions, qa_pairs, question_scores, total_score,
+    selected_topic, summary_text, pinecone_service
+):
+    """Runs transcript PDF, TTS, artifact save, and email send in background."""
+    import re
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.utils import simpleSplit
+    transcript_pdf_path = None
+    transcript_doc = ChatTranscript.objects(
+        user_id=ObjectId(user_id),
+        namespace_id=namespace_id
+    ).order_by('-created_at').first()
+
+    if transcript_doc and transcript_doc.pdf_path and os.path.exists(transcript_doc.pdf_path):
+        transcript_pdf_path = transcript_doc.pdf_path
+        print(f"[Background] Using existing transcript PDF: {transcript_pdf_path}")
+    else:
+        try:
+            os.makedirs(os.path.join(constants.UPLOAD_DIR, namespace_id, 'transcripts'), exist_ok=True)
+            transcript_file_name = f"transcript_{uuid.uuid4().hex}.pdf"
+            transcript_pdf_path = os.path.join(constants.UPLOAD_DIR, namespace_id, 'transcripts', transcript_file_name)
+            c_transcript = canvas.Canvas(transcript_pdf_path, pagesize=letter)
+            t_width, t_height = letter
+            t_margin = 50
+            t_y = t_height - t_margin
+            c_transcript.setFont('Helvetica-Bold', 16)
+            c_transcript.drawString(t_margin, t_y, 'JavaSherpa Interview Transcript')
+            t_y -= 40
+            for idx, msg in enumerate(messages_dict):
+                question = msg.get('question', '')
+                answer = msg.get('Ai_response', '')
+                if question and question.strip():
+                    c_transcript.setFont('Helvetica-Bold', 11)
+                    wrapped = simpleSplit(f"User: {question}", 'Helvetica-Bold', 11, t_width - 2*t_margin)
+                    for line in wrapped:
+                        if t_y < t_margin + 40:
+                            c_transcript.showPage()
+                            t_y = t_height - t_margin
+                        c_transcript.drawString(t_margin, t_y, line)
+                        t_y -= 15
+                    t_y -= 5
+                if answer and answer.strip():
+                    c_transcript.setFont('Helvetica', 10)
+                    answer_display = f"JavaSherpa: {answer[:500]}..." if len(answer) > 500 else f"JavaSherpa: {answer}"
+                    wrapped = simpleSplit(answer_display, 'Helvetica', 10, t_width - 2*t_margin)
+                    for line in wrapped:
+                        if t_y < t_margin + 40:
+                            c_transcript.showPage()
+                            t_y = t_height - t_margin
+                        c_transcript.drawString(t_margin, t_y, line)
+                        t_y -= 14
+                    t_y -= 10
+            c_transcript.save()
+            if transcript_doc:
+                transcript_doc.pdf_path = transcript_pdf_path
+                transcript_doc.save()
+            print(f"[Background] Transcript PDF generated: {transcript_pdf_path}")
+        except Exception as e:
+            print(f"[Background] Error generating transcript PDF: {str(e)}")
+            transcript_pdf_path = None
+
+    summary_audio_path = None
+    if summary_text:
+        try:
+            clean_summary = re.sub(r'\*\*([^\*]+)\*\*', r'\1', summary_text)
+            clean_summary = re.sub(r'^#{1,6}\s+', '', clean_summary, flags=re.MULTILINE)
+            clean_summary = re.sub(r'```[\s\S]*?```', '', clean_summary)
+            clean_summary = re.sub(r'`[^`]+`', '', clean_summary)
+            clean_summary = re.sub(r'\n{3,}', '. ', clean_summary)
+            clean_summary = re.sub(r'[✓~✗]', '', clean_summary)
+            from utils.tts_service import generate_tts_audio
+            from models.schemas import UserSettings
+            try:
+                user_settings = UserSettings.objects(user_id=ObjectId(user_id)).first()
+                voice_pref = user_settings.voice if user_settings else "female"
+            except Exception:
+                voice_pref = "female"
+            audio_file_name = f"summary_audio_{uuid.uuid4().hex}.mp3"
+            summary_audio_path = os.path.join(constants.UPLOAD_DIR, namespace_id, 'reports', audio_file_name)
+            os.makedirs(os.path.dirname(summary_audio_path), exist_ok=True)
+            generate_tts_audio(clean_summary, summary_audio_path, voice_pref)
+            print(f"[Background] TTS audio generated: {summary_audio_path}")
+        except Exception as e:
+            print(f"[Background] Error generating TTS audio: {str(e)}")
+            summary_audio_path = None
+
+    total_score_str = f"{total_score}/{len(session_questions) if session_questions else len(qa_pairs)}"
+    bot = KnowledgeBot.objects(namespace_id=namespace_id).first()
+    session_name = bot.bot_name if bot else f"Interview Session {namespace_id[:8]}"
+    artifact = InterviewArtifacts(
+        user_id=ObjectId(user_id),
+        namespace_id=namespace_id,
+        session_name=session_name,
+        topic=selected_topic,
+        transcript_pdf_path=transcript_pdf_path or "",
+        detailed_report_pdf_path=pdf_path,
+        summary_audio_path=summary_audio_path or "",
+        summary_text=summary_text,
+        total_score=total_score_str,
+        created_at=datetime.now()
+    )
+    artifact.save()
+    print(f"[Background] Interview artifact saved")
+
+    if user_email:
+        try:
+            from utils.email_service import send_interview_report_email
+            send_interview_report_email(
+                user_email=user_email,
+                user_name=user_name,
+                namespace_id=namespace_id,
+                transcript_pdf_path=transcript_pdf_path or "",
+                detailed_report_pdf_path=pdf_path,
+                summary_audio_path=summary_audio_path or "",
+                topic=selected_topic,
+                score=total_score_str,
+                timestamp=datetime.now()
+            )
+            artifact.sent_to_email = datetime.now()
+            artifact.save()
+            print(f"[Background] Email sent to {user_email}")
+        except Exception as e:
+            print(f"[Background] Error sending email: {str(e)}")
+            import traceback
+            traceback.print_exc()
+
+    pinecone_service.interview_completed[namespace_id] = False
+    pinecone_service.current_index[namespace_id] = 0
+    pinecone_service.score[namespace_id] = 0
+    pinecone_service.session_questions[namespace_id] = []
+    pinecone_service.waiting_for_followup[namespace_id] = False
+    pinecone_service.question_scores[namespace_id] = {}
+    if namespace_id in pinecone_service.interview_summary:
+        del pinecone_service.interview_summary[namespace_id]
+    print(f"[Background] Report email task completed")
+
 
 class ChatBot:
     
@@ -189,7 +328,7 @@ class ChatBot:
             except Exception as e:
                 return error(f'Failed to generate PDF: {str(e)}')
 
-    async def generate_detailed_report(self, request, namespace_id: str, messages: list):
+    async def generate_detailed_report(self, request, namespace_id: str, messages: list, background_tasks: BackgroundTasks = None):
         """Generate a detailed report with per-question scoring and analysis"""
         try:
             from reportlab.lib.pagesizes import letter
@@ -425,190 +564,51 @@ class ChatBot:
 
             c.save()
 
-            # Get user info for email
+            # Get user info
             user_id = request.state.user['id']
             user = User.objects(id=ObjectId(user_id)).first()
             user_email = user.email if user else None
             user_name = user.name if user else "User"
-            
-            print(f"Generating email attachments for {user_email}")
-            
-            # Generate transcript PDF if not already exists
-            transcript_pdf_path = None
-            transcript_doc = ChatTranscript.objects(
-                user_id=ObjectId(user_id),
-                namespace_id=namespace_id
-            ).order_by('-created_at').first()
-            
-            if transcript_doc and transcript_doc.pdf_path and os.path.exists(transcript_doc.pdf_path):
-                transcript_pdf_path = transcript_doc.pdf_path
-                print(f"Using existing transcript PDF: {transcript_pdf_path}")
-            else:
-                # Generate new transcript PDF
-                print("Generating new transcript PDF...")
-                try:
-                    os.makedirs(os.path.join(constants.UPLOAD_DIR, namespace_id, 'transcripts'), exist_ok=True)
-                    transcript_file_name = f"transcript_{uuid.uuid4().hex}.pdf"
-                    transcript_pdf_path = os.path.join(constants.UPLOAD_DIR, namespace_id, 'transcripts', transcript_file_name)
-                    
-                    c_transcript = canvas.Canvas(transcript_pdf_path, pagesize=letter)
-                    t_width, t_height = letter
-                    t_margin = 50
-                    t_y = t_height - t_margin
-                    
-                    # Title
-                    c_transcript.setFont('Helvetica-Bold', 16)
-                    c_transcript.drawString(t_margin, t_y, 'JavaSherpa Interview Transcript')
-                    t_y -= 40
-                    
-                    # Add messages
-                    for idx, msg in enumerate(messages_dict):
-                        question = msg.get('question', '')
-                        answer = msg.get('Ai_response', '')
-                        
-                        # User question
-                        if question and question.strip():
-                            c_transcript.setFont('Helvetica-Bold', 11)
-                            wrapped = simpleSplit(f"User: {question}", 'Helvetica-Bold', 11, t_width - 2*t_margin)
-                            for line in wrapped:
-                                if t_y < t_margin + 40:
-                                    c_transcript.showPage()
-                                    t_y = t_height - t_margin
-                                c_transcript.drawString(t_margin, t_y, line)
-                                t_y -= 15
-                            t_y -= 5
-                        
-                        # AI response
-                        if answer and answer.strip():
-                            c_transcript.setFont('Helvetica', 10)
-                            wrapped = simpleSplit(f"JavaSherpa: {answer[:500]}...", 'Helvetica', 10, t_width - 2*t_margin) if len(answer) > 500 else simpleSplit(f"JavaSherpa: {answer}", 'Helvetica', 10, t_width - 2*t_margin)
-                            for line in wrapped:
-                                if t_y < t_margin + 40:
-                                    c_transcript.showPage()
-                                    t_y = t_height - t_margin
-                                c_transcript.drawString(t_margin, t_y, line)
-                                t_y -= 14
-                            t_y -= 10
-                    
-                    c_transcript.save()
-                    print(f"Transcript PDF generated: {transcript_pdf_path}")
-                    
-                    # Update database record
-                    if transcript_doc:
-                        transcript_doc.pdf_path = transcript_pdf_path
-                        transcript_doc.save()
-                except Exception as e:
-                    print(f"Error generating transcript PDF: {str(e)}")
-                    transcript_pdf_path = None
-            
-            # Get summary text and generate TTS audio
             summary_text = pinecone_service.interview_summary.get(namespace_id, "")
-            summary_audio_path = None
-            
-            if summary_text:
-                print("Generating TTS audio...")
-                try:
-                    # Clean text for TTS (remove markdown)
-                    import re
-                    clean_summary = re.sub(r'\*\*([^\*]+)\*\*', r'\1', summary_text)
-                    clean_summary = re.sub(r'^#{1,6}\s+', '', clean_summary, flags=re.MULTILINE)
-                    clean_summary = re.sub(r'```[\s\S]*?```', '', clean_summary)
-                    clean_summary = re.sub(r'`[^`]+`', '', clean_summary)
-                    clean_summary = re.sub(r'\n{3,}', '. ', clean_summary)
-                    clean_summary = re.sub(r'[✓~✗]', '', clean_summary)  # Remove score symbols
-                    
-                    # Generate TTS audio
-                    from utils.tts_service import generate_tts_audio
-                    from models.schemas import UserSettings
-                    
-                    # Get user's voice preference from database
-                    try:
-                        user_settings = UserSettings.objects(user_id=ObjectId(user_id)).first()
-                        voice_pref = user_settings.voice if user_settings else "female"
-                    except:
-                        voice_pref = "female"
-                    
-                    audio_file_name = f"summary_audio_{uuid.uuid4().hex}.mp3"
-                    summary_audio_path = os.path.join(constants.UPLOAD_DIR, namespace_id, 'reports', audio_file_name)
-                    os.makedirs(os.path.dirname(summary_audio_path), exist_ok=True)
-                    
-                    generate_tts_audio(clean_summary, summary_audio_path, voice_pref)
-                    print(f"TTS audio generated: {summary_audio_path}")
-                except Exception as e:
-                    print(f"Error generating TTS audio: {str(e)}")
-                    summary_audio_path = None
-            else:
-                print("No summary text found for TTS generation")
-            
-            # Get session name
-            bot = KnowledgeBot.objects(namespace_id=namespace_id).first()
-            session_name = bot.bot_name if bot else f"Interview Session {namespace_id[:8]}"
-            
-            # Create interview artifacts record
-            total_score_str = f"{total_score}/{len(session_questions) if session_questions else len(qa_pairs)}"
-            artifact = InterviewArtifacts(
-                user_id=ObjectId(user_id),
-                namespace_id=namespace_id,
-                session_name=session_name,
-                topic=selected_topic,
-                transcript_pdf_path=transcript_pdf_path or "",
-                detailed_report_pdf_path=pdf_path,
-                summary_audio_path=summary_audio_path or "",
-                summary_text=summary_text,
-                total_score=total_score_str,
-                created_at=datetime.now()
-            )
-            artifact.save()
-            
-            # Send email with attachments (in background)
-            if user_email:
-                try:
-                    print(f"Preparing to send email to {user_email}")
-                    print(f"  - Transcript PDF: {transcript_pdf_path if transcript_pdf_path else 'NOT AVAILABLE'}")
-                    print(f"  - Detailed Report PDF: {pdf_path}")
-                    print(f"  - Summary Audio: {summary_audio_path if summary_audio_path else 'NOT AVAILABLE'}")
-                    
-                    # Verify files exist
-                    if transcript_pdf_path and os.path.exists(transcript_pdf_path):
-                        print(f"  ✓ Transcript PDF exists: {os.path.getsize(transcript_pdf_path)} bytes")
-                    else:
-                        print(f"  ✗ Transcript PDF missing or doesn't exist")
-                    
-                    if summary_audio_path and os.path.exists(summary_audio_path):
-                        print(f"  ✓ Summary Audio exists: {os.path.getsize(summary_audio_path)} bytes")
-                    else:
-                        print(f"  ✗ Summary Audio missing or doesn't exist")
-                    
-                    from utils.email_service import send_interview_report_email
-                    send_interview_report_email(
-                        user_email=user_email,
-                        user_name=user_name,
-                        namespace_id=namespace_id,
-                        transcript_pdf_path=transcript_pdf_path or "",
-                        detailed_report_pdf_path=pdf_path,
-                        summary_audio_path=summary_audio_path or "",
-                        topic=selected_topic,
-                        score=total_score_str,
-                        timestamp=datetime.now()
-                    )
-                    artifact.sent_to_email = datetime.now()
-                    artifact.save()
-                except Exception as e:
-                    print(f"Error sending email: {str(e)}")
-                    import traceback
-                    traceback.print_exc()
-            
-            # Mark interview as completed and reset state after report generation
-            pinecone_service.interview_completed[namespace_id] = False
-            pinecone_service.current_index[namespace_id] = 0
-            pinecone_service.score[namespace_id] = 0
-            pinecone_service.session_questions[namespace_id] = []
-            pinecone_service.waiting_for_followup[namespace_id] = False
-            pinecone_service.question_scores[namespace_id] = {}
-            if namespace_id in pinecone_service.interview_summary:
-                del pinecone_service.interview_summary[namespace_id]
 
-            # Return PDF
+            # Run transcript, TTS, email in background so user gets report quickly
+            if background_tasks:
+                background_tasks.add_task(
+                    _run_report_email_background,
+                    user_id=user_id,
+                    user_email=user_email,
+                    user_name=user_name,
+                    namespace_id=namespace_id,
+                    messages_dict=messages_dict,
+                    pdf_path=pdf_path,
+                    session_questions=session_questions,
+                    qa_pairs=qa_pairs,
+                    question_scores=question_scores,
+                    total_score=total_score,
+                    selected_topic=selected_topic,
+                    summary_text=summary_text,
+                    pinecone_service=pinecone_service,
+                )
+                print("Report PDF ready. Transcript, TTS, and email will be sent in background.")
+            else:
+                # Fallback: run synchronously if no background_tasks (e.g. tests)
+                _run_report_email_background(
+                    user_id=user_id,
+                    user_email=user_email,
+                    user_name=user_name,
+                    namespace_id=namespace_id,
+                    messages_dict=messages_dict,
+                    pdf_path=pdf_path,
+                    session_questions=session_questions,
+                    qa_pairs=qa_pairs,
+                    question_scores=question_scores,
+                    total_score=total_score,
+                    selected_topic=selected_topic,
+                    summary_text=summary_text,
+                    pinecone_service=pinecone_service,
+                )
+
+            # Return PDF immediately (user sees report in ~5-15 sec instead of ~3 min)
             return FileResponse(
                 pdf_path,
                 media_type='application/pdf',

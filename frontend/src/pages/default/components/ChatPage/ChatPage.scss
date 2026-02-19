@@ -64,26 +64,47 @@
       position: sticky;
       top: 0;
       z-index: 3;
-      flex-wrap: wrap;
-      gap: 1rem;
       border-bottom: 1px solid var(--border-secondary);
-      padding: 1.5rem 2rem;
-
-      h5 {
-        background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        background-size: 200% 200%;
-        animation: gradient-shift 3s ease infinite;
-        font-weight: 900;
-        font-size: 1.75rem;
-        margin: 0;
+      padding: 1.25rem 2rem;
+      
+      // Light mode header improvements
+      .light-theme & {
+        background: rgba(255, 255, 255, 0.95);
+        border-bottom-color: rgba(0, 0, 0, 0.15);
       }
 
-      small {
-        color: var(--text-tertiary);
-        font-weight: 500;
+      .chat-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+
+        .chat-header-title-section {
+          flex: 0 0 auto;
+          min-width: 0;
+
+          h5 {
+            background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+            font-weight: 900;
+            font-size: 1.75rem;
+            margin: 0;
+            white-space: nowrap;
+          }
+        }
+
+        .chat-header-buttons {
+          flex: 0 0 auto;
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          align-items: center;
+        }
       }
 
       .btn {
@@ -91,6 +112,8 @@
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         padding: 0.5rem 1rem;
+        white-space: nowrap;
+        font-size: 0.875rem;
 
         &.btn-outline-warning {
           border: 2px solid #f59e0b;
@@ -144,21 +167,109 @@
           }
         }
       }
+      
+      // Light mode button improvements for better visibility
+      .light-theme & {
+        .btn {
+          &.btn-outline-warning {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: #f59e0b;
+            
+            &:hover {
+              background: #f59e0b;
+            }
+          }
+          
+          &.btn-outline-info {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: #3b82f6;
+            
+            &:hover {
+              background: #3b82f6;
+            }
+          }
+          
+          &.btn-outline-success {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: #10b981;
+            
+            &:hover {
+              background: #10b981;
+            }
+          }
+          
+          &.btn-outline-secondary {
+            background: rgba(107, 114, 128, 0.12);
+            border-color: #6b7280;
+            
+            &:hover {
+              background: #6b7280;
+            }
+          }
+        }
+      }
+
+      @media (max-width: 1200px) {
+        .chat-header-top {
+          .chat-header-buttons {
+            .btn {
+              padding: 0.4rem 0.75rem;
+              font-size: 0.8rem;
+
+              svg {
+                margin-right: 0.25rem !important;
+              }
+            }
+          }
+        }
+      }
+
+      @media (max-width: 992px) {
+        padding: 1rem 1.5rem;
+
+        .chat-header-top {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+
+          .chat-header-title-section {
+            width: 100%;
+
+            h5 {
+              font-size: 1.5rem;
+            }
+          }
+
+          .chat-header-buttons {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+          }
+        }
+      }
 
       @media (max-width: 768px) {
-        flex-direction: column;
-        align-items: flex-start !important;
         padding: 1rem;
 
-        > div:first-child {
-          width: 100%;
-          margin-bottom: 0.5rem;
-        }
+        .chat-header-top {
+          .chat-header-title-section {
+            h5 {
+              font-size: 1.25rem;
+            }
+          }
 
-        > div:last-child {
-          width: 100%;
-          flex-wrap: wrap;
-          justify-content: flex-start;
+          .chat-header-buttons {
+            gap: 0.5rem;
+
+            .btn {
+              padding: 0.375rem 0.625rem;
+              font-size: 0.75rem;
+
+              svg {
+                margin-right: 0.25rem !important;
+              }
+            }
+          }
         }
       }
     }
@@ -172,6 +283,11 @@
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       scroll-behavior: smooth;
+      
+      // Light mode body improvements
+      .light-theme & {
+        background: rgba(245, 247, 250, 0.6);
+      }
       
       /* Custom scrollbar styling */
       &::-webkit-scrollbar {
@@ -191,21 +307,38 @@
           background: linear-gradient(to bottom, #a855f7, #22d3ee);
         }
       }
+      
+      // Light mode scrollbar
+      .light-theme & {
+        &::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.08);
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #667eea, #06b6d4);
+          
+          &:hover {
+            background: linear-gradient(to bottom, #764ba2, #22d3ee);
+          }
+        }
+      }
 
       .message-row {
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         animation: fadeInMessage 0.4s ease-out;
 
         .message-bubble {
           display: inline-block;
-          padding: 1rem 1.25rem;
+          padding: 1.25rem 1.5rem;
           border-radius: 1.5rem;
           max-width: 75%;
-          line-height: 1.6;
+          line-height: 1.75;
           word-wrap: break-word;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           will-change: transform;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          font-size: 1rem;
+          letter-spacing: 0.01em;
 
           &:hover {
             transform: translateY(-2px);
@@ -218,6 +351,7 @@
           color: #fff;
           border-bottom-right-radius: 0.25rem;
           box-shadow: var(--shadow-accent);
+          font-weight: 500;
         }
 
         .bot-msg {
@@ -228,159 +362,301 @@
           border: 1px solid var(--border-secondary);
           border-bottom-left-radius: 0.25rem;
           box-shadow: var(--shadow-sm);
+          font-weight: 400;
+        }
+        
+        // Light mode specific improvements
+        .light-theme & {
+          .bot-msg {
+            background: rgba(102, 126, 234, 0.12);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            color: #2d2d2d;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          }
+          
+          .user-msg {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+          }
         }
 
         .ai-response-content {
           text-align: left;
-          line-height: 1.6;
+          line-height: 1.8;
+          font-size: 1rem;
+          letter-spacing: 0.01em;
 
           .markdown-paragraph {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            margin-top: 0;
             color: rgba(255, 255, 255, 0.95);
+            font-size: 1rem;
+            line-height: 1.8;
+            word-spacing: 0.05em;
+            
+            &:first-child {
+              margin-top: 0;
+            }
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+          
+          // Special styling for paragraphs containing questions
+          .markdown-paragraph.question-paragraph {
+            margin-bottom: 1.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
           }
 
           .markdown-bold {
             font-weight: 700;
             color: #a855f7;
+            letter-spacing: 0.02em;
+          }
+          
+          // Light mode text improvements
+          .light-theme & {
+            .markdown-paragraph {
+              color: #2d2d2d;
+            }
+            
+            .markdown-paragraph.question-paragraph {
+              border-bottom-color: rgba(102, 126, 234, 0.3);
+            }
+            
+            .markdown-bold {
+              color: #667eea;
+            }
           }
 
           .markdown-heading {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            margin: 1.5rem 0 1rem 0;
+            margin: 2rem 0 1.25rem 0;
             color: #a855f7;
             background: linear-gradient(to right, #a855f7, #f472b6, #22d3ee);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: 0.02em;
+            line-height: 1.5;
+            
+            &:first-child {
+              margin-top: 0;
+            }
+          }
+          
+          // Light mode heading improvements
+          .light-theme & {
+            .markdown-heading {
+              background: linear-gradient(to right, #667eea, #9333ea, #06b6d4);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            }
           }
 
           .code-block-wrapper {
-            margin: 1rem 0;
-            border-radius: 0.75rem;
+            position: relative;
+            margin: 16px 0;
+            border-radius: 8px;
             overflow: hidden;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            background: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+            
             .code-block-header {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              padding: 0.5rem 1rem;
-              background: rgba(0, 0, 0, 0.6);
-              border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+              padding: 8px 16px;
+              background: #252526;
+              border-bottom: 1px solid #2d2d2d;
 
               .code-language {
-                color: rgba(255, 255, 255, 0.9);
-                font-size: 0.875rem;
-                font-weight: 600;
+                font-size: 12px;
+                color: #858585;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                font-weight: 500;
+                font-family: "Fira Code", "JetBrains Mono", monospace;
               }
 
-              .copy-code-btn {
+              .code-copy-btn {
                 display: flex;
                 align-items: center;
+                gap: 6px;
                 background: transparent;
-                border: 1px solid rgba(168, 85, 247, 0.4);
-                color: rgba(255, 255, 255, 0.9);
-                padding: 0.375rem 0.75rem;
-                border-radius: 0.375rem;
-                font-size: 0.875rem;
+                border: 1px solid #3e3e42;
+                color: #cccccc;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 12px;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                gap: 0.25rem;
+                font-family: "Fira Code", "JetBrains Mono", monospace;
 
                 &:hover {
-                  background: rgba(168, 85, 247, 0.2);
-                  border-color: rgba(168, 85, 247, 0.6);
-                  color: #fff;
-                  transform: translateY(-1px);
-                }
-
-                &:active {
-                  transform: translateY(0);
-                }
-
-                &.copied {
-                  color: #22d3ee;
-                  border-color: #22d3ee;
-                  background: rgba(34, 211, 238, 0.1);
+                  background: #2d2d2d;
+                  border-color: #3e3e42;
+                  color: #ffffff;
                 }
 
                 svg {
-                  font-size: 0.75rem;
+                  width: 14px;
+                  height: 14px;
                 }
               }
             }
+            
+            pre {
+              margin: 0;
+              padding: 16px;
+              background: #1e1e1e;
+              border-radius: 0;
+              overflow-x: auto;
+              white-space: pre !important;
+              font-size: 13px;
+              line-height: 1.6;
+              color: #d4d4d4;
+              font-family: "Fira Code", "JetBrains Mono", monospace;
+            }
+
+            pre code {
+              color: #d4d4d4;
+              font-size: 13px;
+              line-height: 1.6;
+              font-family: "Fira Code", "JetBrains Mono", monospace;
+              white-space: pre !important;
+              display: block;
+              word-wrap: normal !important;
+              word-break: normal !important;
+            }
+
           }
 
-          .code-block {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin: 1rem 0;
+          // General markdown pre styling (for code blocks outside wrapper)
+          .markdown pre {
+            background: #020617;
+            color: #e5e7eb;
+            padding: 18px 20px;
+            border-radius: 14px;
             overflow-x: auto;
-            position: relative;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            display: block;
+            white-space: pre;
+            font-family: "Fira Code", "JetBrains Mono", monospace;
+          }
 
-            code {
-              color: #22d3ee;
-              font-family: 'Courier New', monospace;
-              font-size: 0.9rem;
-              line-height: 1.5;
-              display: block;
-              white-space: pre;
+          .markdown code {
+            font-family: "Fira Code", "JetBrains Mono", monospace;
+          }
+
+          // Inline code styling
+          .markdown :not(pre) > code {
+            background: #f1f5f9;
+            color: #e11d48;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 500;
+            font-family: "Fira Code", "JetBrains Mono", monospace;
+          }
+          
+          // Light mode inline code improvements
+          .light-theme & {
+            .markdown :not(pre) > code {
+              background: rgba(102, 126, 234, 0.15);
+              color: #667eea;
             }
           }
 
-          .inline-code {
-            background: rgba(168, 85, 247, 0.2);
-            color: #22d3ee;
-            padding: 0.2rem 0.4rem;
-            border-radius: 0.25rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-          }
-
           .markdown-list {
-            margin: 1rem 0;
-            padding-left: 1.5rem;
-            color: rgba(255, 255, 255, 0.9);
+            margin: 1.25rem 0;
+            padding-left: 2rem;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.8;
 
             .markdown-list-item {
-              margin-bottom: 0.5rem;
-              line-height: 1.6;
+              margin-bottom: 0.75rem;
+              line-height: 1.8;
+              padding-left: 0.5rem;
+              
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+          }
+          
+          // Light mode list improvements
+          .light-theme & {
+            .markdown-list {
+              color: #2d2d2d;
             }
           }
 
           .markdown-blockquote {
-            border-left: 3px solid #a855f7;
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: rgba(255, 255, 255, 0.8);
+            border-left: 4px solid #a855f7;
+            padding-left: 1.25rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            margin: 1.5rem 0;
+            color: rgba(255, 255, 255, 0.9);
             font-style: italic;
+            background: rgba(168, 85, 247, 0.1);
+            border-radius: 0 0.5rem 0.5rem 0;
+            line-height: 1.8;
+          }
+          
+          // Light mode blockquote improvements
+          .light-theme & {
+            .markdown-blockquote {
+              color: #4a4a4a;
+              background: rgba(102, 126, 234, 0.08);
+              border-left-color: #667eea;
+            }
           }
 
           // Highlight follow-up questions - using class-based approach
           .markdown-paragraph.follow-up-question {
             display: block;
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-            padding: 1rem 1.25rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.25rem 1.5rem;
             background: rgba(168, 85, 247, 0.15);
             border-left: 4px solid #a855f7;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+            font-weight: 500;
+            line-height: 1.8;
+            letter-spacing: 0.01em;
+          }
+          
+          // Light mode follow-up question improvements
+          .light-theme & {
+            .markdown-paragraph.follow-up-question {
+              background: rgba(102, 126, 234, 0.12);
+              border-left-color: #667eea;
+              border-color: rgba(102, 126, 234, 0.3);
+              box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+              color: #2d2d2d;
+            }
           }
 
           .markdown-hr {
             border: none;
-            border-top: 2px solid rgba(168, 85, 247, 0.3);
-            margin: 1.5rem 0;
+            border-top: 2px solid rgba(168, 85, 247, 0.4);
+            margin: 2rem 0;
+            height: 0;
+          }
+          
+          // Light mode horizontal rule improvements
+          .light-theme & {
+            .markdown-hr {
+              border-top-color: rgba(102, 126, 234, 0.35);
+            }
           }
 
           .report-action-button-container {
@@ -483,6 +759,12 @@
       border-radius: 0 0 1.5rem 1.5rem;
       border-top: 1px solid var(--border-secondary);
       padding: 1.5rem 2rem;
+      
+      // Light mode input area improvements
+      .light-theme & {
+        background: rgba(255, 255, 255, 0.95);
+        border-top-color: rgba(0, 0, 0, 0.15);
+      }
 
       form {
         display: flex;

@@ -5,6 +5,7 @@ import ApiService from "../../services/Api.service";
 import { toast } from "react-toastify";
 import StarBackground from "../../components/StarBackground/StarBackground";
 import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Register = () => {
   let navigate = useNavigate();
@@ -18,6 +19,7 @@ const Register = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -129,14 +131,24 @@ const Register = () => {
 
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  className="form-control"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    className="form-control"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
 
               <button

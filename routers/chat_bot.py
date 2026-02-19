@@ -41,10 +41,10 @@ async def saveHistoryPdf(request: Request, data: ChatHistorySave):
     return await chatBotService.save_history_pdf(request, data.namespace_id, data.messages)
 
 @router.post("/report/detailed",dependencies=[Depends(get_current_token)])
-async def generateDetailedReport(request: Request, data: ChatHistorySave):
+async def generateDetailedReport(request: Request, data: ChatHistorySave, background_tasks: BackgroundTasks):
     try:
         print(f"Received request for detailed report: namespace_id={data.namespace_id}, messages_count={len(data.messages)}")
-        return await chatBotService.generate_detailed_report(request, data.namespace_id, data.messages)
+        return await chatBotService.generate_detailed_report(request, data.namespace_id, data.messages, background_tasks)
     except Exception as e:
         print(f"Error in generateDetailedReport endpoint: {str(e)}")
         from utils.exception import error
