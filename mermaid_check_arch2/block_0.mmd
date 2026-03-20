@@ -1,15 +1,15 @@
 graph TD
 U((User))
 Browser[Web Browser]
-React[React SPA (Vite) Routing UI]
+React[React SPA Vite Routing UI]
 
-Home[Home (/)]
-About[About (/about)]
-Login[Login (/login)]
-Register[Register (/register)]
+Home[Home /]
+About[About /about]
+Login[Login /login]
+Register[Register /register]
 Protected[Protected /default]
 
-Header[Header Layout (/default)]
+Header[Header Layout /default]
 BotList[BotList Create / List Sessions]
 FileUpload[FileUpload Upload Materials]
 ChatPage[ChatPage Voice STT/TTS, Markdown, Reports]
@@ -27,7 +27,7 @@ Protected --> FileUpload
 Protected --> ChatPage
 ChatPage --> ClientCache
 
-API[FastAPI Server (CORS + JWT)]
+API[FastAPI Server CORS and JWT]
 UserRouter[User Router /user/*]
 ChatBotRouter[ChatBot Router /chat-bot/*]
 FilesRouter[Files Router /files/*]
@@ -43,7 +43,7 @@ API --> Services
 React -->|"HTTP requests"| API
 
 MongoDB[(MongoDB)]
-UploadDir[Server Upload Directory (PDF/MP3)]
+UploadDir[Server Upload Directory PDF/MP3]
 
 UserRouter --> MongoDB
 ChatBotRouter --> MongoDB
@@ -51,16 +51,16 @@ FilesRouter --> MongoDB
 FilesRouter --> UploadDir
 ChatBotRouter --> UploadDir
 
-Pinecone[Vector DB (Pinecone)]
+Pinecone[Vector DB Pinecone]
 Mistral[Mistral AI]
-EmailSMTP[Email (SMTP/Gmail)]
+EmailSMTP[Email SMTP/Gmail]
 
 ChatBotRouter --> Pinecone
 ChatBotRouter --> Mistral
 ChatBotRouter --> EmailSMTP
 
 UserRouter -->|"forgot password OTP"| EmailSMTP
-ChatPage -->|"POST chat-bot/chat (streaming)"| ChatBotRouter
-ChatPage -->|"POST /history/pdf + /report/detailed"| ChatBotRouter
+ChatPage -->|"POST chat-bot/chat streaming"| ChatBotRouter
+ChatPage -->|"POST /history/pdf and /report/detailed"| ChatBotRouter
 BotList -->|"POST chat-bot/"| ChatBotRouter
 FileUpload -->|"POST files/fileUpload"| FilesRouter

@@ -18,11 +18,11 @@ API --> JWT
 JWT -->|"Authorize"| U
 
 U --> Login
-Login -->|"POST /user/forgot-password (OTP email)"| API
+Login -->|"POST /user/forgot-password OTP email"| API
 API --> DB
 API -->|"send OTP email"| U
 
 U --> Login
-Login -->|"POST /user/reset-password (OTP + newPassword)"| API
+Login -->|"POST /user/reset-password OTP and newPassword"| API
 API --> DB
 API -->|"Password updated"| U

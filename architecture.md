@@ -3,28 +3,21 @@
 ## 1) System Overview (Vertical)
 ```mermaid
 graph TD
-%% ---- Styles (kept simple for portrait rendering) ----
-classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
-classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
-
-%% ---- User + Frontend ----
 U((User))
-Browser[Web Browser]:::ui
-React[React SPA (Vite) Routing + UI]:::ui
+Browser[Web Browser]
+React[React SPA Vite Routing UI]
 
-Home[Home (/)]:::ui
-About[About (/about)]:::ui
-Login[Login (/login) OTP modal for forgot password]:::ui
-Register[Register (/register)]:::ui
-Protected[Protected /default ProtectedRoute]:::ui
+Home[Home /]
+About[About /about]
+Login[Login /login]
+Register[Register /register]
+Protected[Protected /default]
 
-Header[Header Layout (/default)]:::ui
-BotList[BotList Create / List Sessions]:::ui
-FileUpload[FileUpload Upload Materials]:::ui
-ChatPage[ChatPage Voice STT/TTS, Markdown, Reports]:::ui
-ClientCache[Browser localStorage (chat history cache)]:::ui
+Header[Header Layout /default]
+BotList[BotList Create / List Sessions]
+FileUpload[FileUpload Upload Materials]
+ChatPage[ChatPage Voice STT/TTS, Markdown, Reports]
+ClientCache[Browser localStorage cache]
 
 U --> Browser --> React
 React --> Home
@@ -38,15 +31,12 @@ Protected --> FileUpload
 Protected --> ChatPage
 ChatPage --> ClientCache
 
-%% ---- Backend ----
-API[FastAPI Server CORS + JWT Auth + Routers]:::api
-
-UserRouter[User Router /user/*]:::api
-ChatBotRouter[ChatBot Router /chat-bot/*]:::api
-FilesRouter[Files Router /files/*]:::api
-
-Services[Services Orchestrator]:::api
-JWT[JWT Middleware]:::api
+API[FastAPI Server CORS and JWT]
+UserRouter[User Router /user/*]
+ChatBotRouter[ChatBot Router /chat-bot/*]
+FilesRouter[Files Router /files/*]
+Services[Services Orchestrator]
+JWT[JWT Middleware]
 
 API --> UserRouter
 API --> ChatBotRouter
@@ -56,9 +46,8 @@ API --> Services
 
 React -->|"HTTP requests"| API
 
-%% ---- Data Stores ----
-MongoDB[(MongoDB)]:::data
-UploadDir[Server Upload Directory PDF/MP3 artifacts]:::data
+MongoDB[(MongoDB)]
+UploadDir[Server Upload Directory PDF/MP3]
 
 UserRouter --> MongoDB
 ChatBotRouter --> MongoDB
@@ -66,19 +55,17 @@ FilesRouter --> MongoDB
 FilesRouter --> UploadDir
 ChatBotRouter --> UploadDir
 
-%% ---- External AI / Vector / Email ----
-Pinecone[Vector DB (Pinecone)]:::ext
-Mistral[Mistral AI Embeddings + Chat Responses]:::ext
-EmailSMTP[Email (SMTP/Gmail)]:::ext
+Pinecone[Vector DB Pinecone]
+Mistral[Mistral AI]
+EmailSMTP[Email SMTP/Gmail]
 
 ChatBotRouter --> Pinecone
 ChatBotRouter --> Mistral
 ChatBotRouter --> EmailSMTP
 
-%% ---- Key user interactions (portrait-friendly flow) ----
 UserRouter -->|"forgot password OTP"| EmailSMTP
-ChatPage -->|"POST chat-bot/chat (streaming)"| ChatBotRouter
-ChatPage -->|"POST /history/pdf + /report/detailed"| ChatBotRouter
+ChatPage -->|"POST chat-bot/chat streaming"| ChatBotRouter
+ChatPage -->|"POST /history/pdf and /report/detailed"| ChatBotRouter
 BotList -->|"POST chat-bot/"| ChatBotRouter
 FileUpload -->|"POST files/fileUpload"| FilesRouter
 ```
@@ -86,16 +73,12 @@ FileUpload -->|"POST files/fileUpload"| FilesRouter
 ## 2) Authentication + OTP Password Reset (Vertical)
 ```mermaid
 graph TD
-classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
-
 U((User))
-Login[Login Page Forgot password modal]:::ui
-Register[Register Page]:::ui
-API[FastAPI /user endpoints]:::api
-DB[(MongoDB)]:::data
-JWT[JWT Token]:::api
+Login[Login page]
+Register[Register page]
+API[FastAPI /user endpoints]
+DB[(MongoDB)]
+JWT[JWT token]
 
 U --> Register
 Register -->|"POST /user/register"| API
@@ -109,12 +92,12 @@ API --> JWT
 JWT -->|"Authorize"| U
 
 U --> Login
-Login -->|"POST /user/forgot-password email OTP"| API
+Login -->|"POST /user/forgot-password OTP email"| API
 API --> DB
 API -->|"send OTP email"| U
 
 U --> Login
-Login -->|"POST /user/reset-password (email, otp, newPassword)"| API
+Login -->|"POST /user/reset-password OTP and newPassword"| API
 API --> DB
 API -->|"Password updated"| U
 ```
@@ -122,27 +105,21 @@ API -->|"Password updated"| U
 ## 3) Interview Session: Create → Upload → Chat → Report (Vertical)
 ```mermaid
 graph TD
-classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
-classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
-classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
-
 U((User))
-Protected[Protected /default UI]:::ui
-BotList[BotList Sessions]:::ui
-Upload[FileUpload PDF Materials]:::ui
-Chat[ChatPage Streaming chat + Voice]:::ui
+Protected[Protected /default]
+BotList[BotList sessions]
+Upload[FileUpload PDF materials]
+Chat[ChatPage streaming chat + voice]
 
-API[FastAPI chat-bot + files routers]:::api
-Pinecone[Vector DB (Pinecone)]:::ext
-Mistral[Mistral AI]:::ext
-
-Mongo[(MongoDB)]:::data
-Artifacts[Upload Dir + Generated PDFs/MP3]:::data
+API[FastAPI chat-bot + files routers]
+Pinecone[Vector DB Pinecone]
+Mistral[Mistral AI]
+Mongo[(MongoDB)]
+Artifacts[Upload dir + generated PDFs/MP3]
 
 U --> Protected
 Protected --> BotList
-BotList -->|"POST chat-bot/" (create session)"| API
+BotList -->|"POST chat-bot/"| API
 BotList -->|"GET chat-bot/all"| API
 API --> Mongo
 
@@ -153,16 +130,15 @@ API --> Mongo
 API --> Artifacts
 
 Protected --> Chat
-Chat -->|"POST chat-bot/chat (streaming)"| API
+Chat -->|"POST chat-bot/chat streaming"| API
 API --> Pinecone
 API --> Mistral
 API --> Mongo
 
-Chat -->|"Save history: POST chat-bot/history"| API
-Chat -->|"Reset: POST chat-bot/reset"| API
-
-Chat -->|"Download transcript: POST chat-bot/history/pdf"| API
-Chat -->|"Detailed report: POST chat-bot/report/detailed"| API
+Chat -->|"Save history"| API
+Chat -->|"Reset"| API
+Chat -->|"Download transcript PDF"| API
+Chat -->|"Detailed report + email"| API
 API --> Artifacts
 ```
 
@@ -173,9 +149,9 @@ graph TD
   A[App.jsx - Root] --> B[MainRoute]
   B --> C[Public Routes]
   B --> D[Protected Routes]
-  C --> E[Home Page (/)]
-  C --> F[Auth Pages (/login, /register)]
-  D --> G[Default Layout (/default)]
+  C --> E[Home Page /]
+  C --> F[Auth Pages /login, /register]
+  D --> G[Default Layout /default]
   G --> H[Header Layout]
   G --> I[BotList Component]
   G --> J[FileUpload Component]
@@ -186,25 +162,25 @@ graph TD
   K --> O[Report Modal]
   K --> P[ReactMarkdown Renderer]
   P --> Q[Code Blocks + Syntax Rendering]
-  B --> R[API Service (Axios/fetch)]
+  B --> R[API Service Axios/fetch]
 ```
 
 ### Backend Architecture
 ```mermaid
 graph TD
-  A[FastAPI app (app.py)] --> B[Routers]
-  B --> C[User Router (/user/*)]
-  B --> D[ChatBot Router (/chat-bot/*)]
-  B --> E[Files Router (/files/*)]
-  B --> F[Auth + Middleware (JWT/CORS)]
+  A[FastAPI app app.py] --> B[Routers]
+  B --> C[User Router /user/*]
+  B --> D[ChatBot Router /chat-bot/*]
+  B --> E[Files Router /files/*]
+  B --> F[Auth and Middleware JWT/CORS]
 
-  D --> G[Chat Endpoints (/chat, /history, /report)]
-  C --> H[Auth Endpoints (/login, /register, /settings)]
-  E --> I[File Endpoints (upload, list, delete)]
+  D --> G[Chat Endpoints /chat, /history, /report]
+  C --> H[Auth Endpoints /login, /register, /settings]
+  E --> I[File Endpoints upload, list, delete]
 
-  G --> J[ChatBot Service (LLM + vector + evaluation)]
-  H --> K[User Service (CRUD + auth + preferences)]
-  I --> L[File Service (metadata + storage orchestration)]
+  G --> J[ChatBot Service LLM, vector, evaluation]
+  H --> K[User Service CRUD, auth, preferences]
+  I --> L[File Service metadata, storage orchestration]
 
   J --> M[Pinecone Vector Search]
   J --> N[Mistral AI Integration]
@@ -390,8 +366,8 @@ flowchart TD
 ## 9) Deployment Architecture (Portrait-Friendly)
 ```mermaid
 graph TD
-  LB[Load Balancer] --> NG[Nginx (Frontend Static)]
-  LB --> UV[Uvicorn (Backend)]
+  LB[Load Balancer] --> NG[Nginx Frontend Static]
+  LB --> UV[Uvicorn Backend]
   NG --> RS[React Static Files]
   UV --> API[FastAPI Application]
   API --> WK[Worker Processes]
@@ -399,7 +375,7 @@ graph TD
   API --> MONG[(MongoDB Atlas)]
   API --> PINE[(Pinecone Cloud)]
   API --> MISTRAL[Mistral AI API]
-  API --> GMAIL[SMTP Server (Gmail)]
+  API --> GMAIL[SMTP Server Gmail]
 
   API --> STORE[File Storage]
   STORE --> PDF[PDF Files]

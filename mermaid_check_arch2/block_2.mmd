@@ -6,7 +6,7 @@ Upload[FileUpload PDF materials]
 Chat[ChatPage streaming chat + voice]
 
 API[FastAPI chat-bot + files routers]
-Pinecone[Vector DB (Pinecone)]
+Pinecone[Vector DB Pinecone]
 Mistral[Mistral AI]
 Mongo[(MongoDB)]
 Artifacts[Upload dir + generated PDFs/MP3]
@@ -24,7 +24,7 @@ API --> Mongo
 API --> Artifacts
 
 Protected --> Chat
-Chat -->|"POST chat-bot/chat (streaming)"| API
+Chat -->|"POST chat-bot/chat streaming"| API
 API --> Pinecone
 API --> Mistral
 API --> Mongo
