@@ -1,0 +1,43 @@
+graph TD
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
+
+U((User))
+Protected[Protected /default UI]:::ui
+BotList[BotList Sessions]:::ui
+Upload[FileUpload PDF Materials]:::ui
+Chat[ChatPage Streaming chat + Voice]:::ui
+
+API[FastAPI chat-bot + files routers]:::api
+Pinecone[Vector DB (Pinecone)]:::ext
+Mistral[Mistral AI]:::ext
+
+Mongo[(MongoDB)]:::data
+Artifacts[Upload Dir + Generated PDFs/MP3]:::data
+
+U --> Protected
+Protected --> BotList
+BotList -->|"POST chat-bot/" (create session)"| API
+BotList -->|"GET chat-bot/all"| API
+API --> Mongo
+
+Protected --> Upload
+Upload -->|"GET files?chatBotId="| API
+Upload -->|"POST files/fileUpload"| API
+API --> Mongo
+API --> Artifacts
+
+Protected --> Chat
+Chat -->|"POST chat-bot/chat (streaming)"| API
+API --> Pinecone
+API --> Mistral
+API --> Mongo
+
+Chat -->|"Save history: POST chat-bot/history"| API
+Chat -->|"Reset: POST chat-bot/reset"| API
+
+Chat -->|"Download transcript: POST chat-bot/history/pdf"| API
+Chat -->|"Detailed report: POST chat-bot/report/detailed"| API
+API --> Artifacts

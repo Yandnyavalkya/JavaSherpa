@@ -1,0 +1,79 @@
+graph TD
+%% ---- Styles (kept simple for portrait rendering) ----
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
+
+%% ---- User + Frontend ----
+U((User))
+Browser[Web Browser]:::ui
+React[React SPA (Vite) Routing + UI]:::ui
+
+Home[Home (/)]:::ui
+About[About (/about)]:::ui
+Login[Login (/login) OTP modal for forgot password]:::ui
+Register[Register (/register)]:::ui
+Protected[Protected /default ProtectedRoute]:::ui
+
+Header[Header Layout (/default)]:::ui
+BotList[BotList Create / List Sessions]:::ui
+FileUpload[FileUpload Upload Materials]:::ui
+ChatPage[ChatPage Voice STT/TTS, Markdown, Reports]:::ui
+ClientCache[Browser localStorage (chat history cache)]:::ui
+
+U --> Browser --> React
+React --> Home
+React --> About
+React --> Login
+React --> Register
+React --> Protected
+Protected --> Header
+Protected --> BotList
+Protected --> FileUpload
+Protected --> ChatPage
+ChatPage --> ClientCache
+
+%% ---- Backend ----
+API[FastAPI Server CORS + JWT Auth + Routers]:::api
+
+UserRouter[User Router /user/*]:::api
+ChatBotRouter[ChatBot Router /chat-bot/*]:::api
+FilesRouter[Files Router /files/*]:::api
+
+Services[Services Orchestrator]:::api
+JWT[JWT Middleware]:::api
+
+API --> UserRouter
+API --> ChatBotRouter
+API --> FilesRouter
+API --> JWT
+API --> Services
+
+React -->|"HTTP requests"| API
+
+%% ---- Data Stores ----
+MongoDB[(MongoDB)]:::data
+UploadDir[Server Upload Directory PDF/MP3 artifacts]:::data
+
+UserRouter --> MongoDB
+ChatBotRouter --> MongoDB
+FilesRouter --> MongoDB
+FilesRouter --> UploadDir
+ChatBotRouter --> UploadDir
+
+%% ---- External AI / Vector / Email ----
+Pinecone[Vector DB (Pinecone)]:::ext
+Mistral[Mistral AI Embeddings + Chat Responses]:::ext
+EmailSMTP[Email (SMTP/Gmail)]:::ext
+
+ChatBotRouter --> Pinecone
+ChatBotRouter --> Mistral
+ChatBotRouter --> EmailSMTP
+
+%% ---- Key user interactions (portrait-friendly flow) ----
+UserRouter -->|"forgot password OTP"| EmailSMTP
+ChatPage -->|"POST chat-bot/chat (streaming)"| ChatBotRouter
+ChatPage -->|"POST /history/pdf + /report/detailed"| ChatBotRouter
+BotList -->|"POST chat-bot/"| ChatBotRouter
+FileUpload -->|"POST files/fileUpload"| FilesRouter

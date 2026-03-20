@@ -1,0 +1,52 @@
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant API as ChatBot Router
+    participant CS as ChatBot Service
+    participant PS as Pinecone Service
+    participant TTS as TTS Service
+    participant ES as Email Service
+    participant DB as MongoDB
+    participant FS as File System
+    participant SMTP as Gmail SMTP
+
+    U->>F: Click "View Detailed Report"
+    F->>API: POST /chat-bot/report/detailed
+    API->>CS: Generate detailed report
+    
+    par Generate Transcript PDF
+        CS->>FS: Create transcript PDF
+        FS-->>CS: transcript.pdf path
+    and Generate Detailed Report PDF
+        CS->>PS: Get session data (questions, scores)
+        PS-->>CS: Session data
+        CS->>FS: Create detailed report PDF
+        FS-->>CS: detailed_report.pdf path
+    and Generate Audio
+        CS->>PS: Get interview summary
+        PS-->>CS: Summary text
+        CS->>TTS: Generate audio from summary
+        TTS->>FS: Save audio.mp3
+        FS-->>TTS: audio.mp3 path
+        TTS-->>CS: Audio path
+    end
+    
+    CS->>DB: Save artifact paths to InterviewArtifacts
+    DB-->>CS: Saved
+    
+    CS->>ES: Send email with attachments
+    ES->>FS: Read PDF and audio files
+    FS-->>ES: File contents
+    ES->>SMTP: Send email with attachments
+    SMTP-->>ES: Email sent
+    ES-->>CS: Success
+    
+    CS->>DB: Update sent_to_email timestamp
+    DB-->>CS: Updated
+    
+    CS->>FS: Read detailed report PDF
+    FS-->>CS: PDF blob
+    CS-->>API: PDF response
+    API-->>F: PDF blob
+    F->>F: Display in modal
+    F-->>U: Show report with download/share options

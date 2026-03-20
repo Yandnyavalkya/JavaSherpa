@@ -3,7 +3,7 @@
 ## 🏗️ High-Level Architecture Diagram
 
 ```mermaid
-graph TB
+graph TD
     subgraph "Frontend - React Application"
         A[User Browser] --> B[React App - Vite]
         B --> C[Pages]
@@ -268,15 +268,15 @@ graph TD
         B --> D[ChatBot Router]
         
         D --> E[ChatBot Endpoints]
-        E --> F["POST /chat<br/>Interview conversation"]
-        E --> G["POST /report/detailed<br/>Generate report"]
-        E --> H["POST /history<br/>Save/Get history"]
-        E --> I["POST /reset<br/>Reset session"]
+        E --> F["POST /chat Interview conversation"]
+        E --> G["POST /report/detailed Generate report"]
+        E --> H["POST /history Save/Get history"]
+        E --> I["POST /reset Reset session"]
         
         C --> J[User Endpoints]
-        J --> K["POST /login<br/>Authentication"]
-        J --> L["POST /register<br/>Create account"]
-        J --> M["GET/POST /settings<br/>User preferences"]
+        J --> K["POST /login Authentication"]
+        J --> L["POST /register Create account"]
+        J --> M["GET/POST /settings User preferences"]
         
         F --> N[ChatBot Service]
         G --> N
@@ -317,46 +317,44 @@ erDiagram
     KNOWLEDGE_BOT ||--o{ INTERVIEW_ARTIFACTS : produces
     
     USER {
-        ObjectId _id PK
-        string email UK
+        ObjectId _id
+        string email
         string password
         string name
         int phone_number
-        string company_name
         datetime created_at
     }
     
     USER_SETTINGS {
-        ObjectId _id PK
-        ObjectId user_id FK
+        ObjectId _id
+        ObjectId user_id
         string theme
         string voice
     }
     
     KNOWLEDGE_BOT {
-        ObjectId _id PK
-        ObjectId user_id FK
-        string namespace_id UK
+        ObjectId _id
+        ObjectId user_id
+        string namespace_id
         string bot_name
         string description
         datetime created_at
     }
     
     CHAT_TRANSCRIPT {
-        ObjectId _id PK
-        ObjectId user_id FK
-        string namespace_id FK
+        ObjectId _id
+        ObjectId user_id
+        string namespace_id
         string messages_json
         string pdf_path
         datetime created_at
     }
     
     INTERVIEW_ARTIFACTS {
-        ObjectId _id PK
-        ObjectId user_id FK
-        string namespace_id FK
+        ObjectId _id
+        ObjectId user_id
+        string namespace_id
         string session_name
-        string topic
         string transcript_pdf_path
         string detailed_report_pdf_path
         string summary_audio_path
@@ -374,7 +372,7 @@ erDiagram
 ### User Management
 
 ```mermaid
-graph LR
+graph TD
     A[User APIs] --> B[POST /user/register]
     A --> C[POST /user/login]
     A --> D[GET /user/settings]
@@ -389,7 +387,7 @@ graph LR
 ### ChatBot/Interview Management
 
 ```mermaid
-graph LR
+graph TD
     A[ChatBot APIs] --> B[POST /chat-bot]
     A --> C[GET /chat-bot/all]
     A --> D[POST /chat-bot/chat]
@@ -566,7 +564,7 @@ JavaSherpa/
 ## 🚀 Deployment Architecture
 
 ```mermaid
-graph TB
+graph TD
     subgraph "Production Environment"
         A[Load Balancer] --> B[Frontend Server - Nginx]
         A --> C[Backend Server - Uvicorn]

@@ -1,0 +1,32 @@
+graph TD
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+
+U((User))
+Login[Login Page Forgot password modal]:::ui
+Register[Register Page]:::ui
+API[FastAPI /user endpoints]:::api
+DB[(MongoDB)]:::data
+JWT[JWT Token]:::api
+
+U --> Register
+Register -->|"POST /user/register"| API
+API --> DB
+API -->|"success"| Login
+
+U --> Login
+Login -->|"POST /user/login"| API
+API --> DB
+API --> JWT
+JWT -->|"Authorize"| U
+
+U --> Login
+Login -->|"POST /user/forgot-password email OTP"| API
+API --> DB
+API -->|"send OTP email"| U
+
+U --> Login
+Login -->|"POST /user/reset-password (email, otp, newPassword)"| API
+API --> DB
+API -->|"Password updated"| U

@@ -1,0 +1,28 @@
+flowchart TD
+    A[Report generation triggered] --> B[Generate Transcript PDF]
+    A --> C[Generate Detailed Report PDF]
+    A --> D[Generate TTS Audio]
+    
+    B --> E{PDF exists?}
+    E -->|No| F[Create new PDF]
+    E -->|Yes| G[Use existing]
+    F --> G
+    
+    C --> H[Create report with scores]
+    
+    D --> I{Summary available?}
+    I -->|Yes| J[Clean markdown from text]
+    I -->|No| K[Skip audio]
+    J --> L[Generate MP3 via TTS]
+    L --> M[Save audio file]
+    
+    G --> N[Collect all files]
+    H --> N
+    M --> N
+    K --> N
+    
+    N --> O[Get user email from DB]
+    O --> P[Create email with attachments]
+    P --> Q[Send via SMTP]
+    Q --> R[Update sent_to_email timestamp]
+    R --> S[Return PDF to user]

@@ -1,0 +1,58 @@
+erDiagram
+    USER ||--o{ KNOWLEDGE_BOT : creates
+    USER ||--o{ CHAT_TRANSCRIPT : has
+    USER ||--o{ INTERVIEW_ARTIFACTS : generates
+    USER ||--|| USER_SETTINGS : has
+    
+    KNOWLEDGE_BOT ||--o{ CHAT_TRANSCRIPT : contains
+    KNOWLEDGE_BOT ||--o{ INTERVIEW_ARTIFACTS : produces
+    
+    USER {
+        ObjectId _id PK
+        string email UK
+        string password
+        string name
+        int phone_number
+        string company_name
+        datetime created_at
+    }
+    
+    USER_SETTINGS {
+        ObjectId _id PK
+        ObjectId user_id FK
+        string theme
+        string voice
+    }
+    
+    KNOWLEDGE_BOT {
+        ObjectId _id PK
+        ObjectId user_id FK
+        string namespace_id UK
+        string bot_name
+        string description
+        datetime created_at
+    }
+    
+    CHAT_TRANSCRIPT {
+        ObjectId _id PK
+        ObjectId user_id FK
+        string namespace_id FK
+        string messages_json
+        string pdf_path
+        datetime created_at
+    }
+    
+    INTERVIEW_ARTIFACTS {
+        ObjectId _id PK
+        ObjectId user_id FK
+        string namespace_id FK
+        string session_name
+        string topic
+        string transcript_pdf_path
+        string detailed_report_pdf_path
+        string summary_audio_path
+        string summary_text
+        string total_score
+        datetime sent_to_email
+        datetime created_at
+    }

@@ -1,0 +1,18 @@
+graph TD
+  A[ChatBot APIs] --> B[POST /chat-bot/]
+  A --> C[GET /chat-bot/all]
+  A --> D[POST /chat-bot/chat]
+  A --> E[POST /chat-bot/reset]
+  A --> F[POST /chat-bot/history]
+  A --> G[GET /chat-bot/history]
+  A --> H[POST /chat-bot/history/pdf]
+  A --> I[POST /chat-bot/report/detailed]
+
+  B -.->|Creates session| J[Interview Session]
+  C -.->|Lists sessions| J
+  D -.->|Q&A interaction| K[Streaming Q&A]
+  E -.->|Resets state| L[Session State]
+  F -.->|Saves history| M[Chat History]
+  G -.->|Retrieves history| M
+  H -.->|Generates transcript PDF| N[Transcript PDF]
+  I -.->|Generates report + email| O[Detailed Report]

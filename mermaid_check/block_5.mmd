@@ -1,0 +1,39 @@
+graph TD
+    subgraph "FastAPI Application Structure"
+        A[app.py - Main] --> B[Router Registration]
+        B --> C[User Router]
+        B --> D[ChatBot Router]
+        
+        D --> E[ChatBot Endpoints]
+        E --> F["POST /chat<br/>Interview conversation"]
+        E --> G["POST /report/detailed<br/>Generate report"]
+        E --> H["POST /history<br/>Save/Get history"]
+        E --> I["POST /reset<br/>Reset session"]
+        
+        C --> J[User Endpoints]
+        J --> K["POST /login<br/>Authentication"]
+        J --> L["POST /register<br/>Create account"]
+        J --> M["GET/POST /settings<br/>User preferences"]
+        
+        F --> N[ChatBot Service]
+        G --> N
+        H --> N
+        
+        N --> O[Pinecone Service]
+        N --> P[Email Service]
+        N --> Q[TTS Service]
+        
+        O --> R[Mistral AI Integration]
+        O --> S[Pinecone Vector DB]
+        
+        N --> T[MongoDB Operations]
+        T --> U[User Collection]
+        T --> V[KnowledgeBot Collection]
+        T --> W[ChatTranscript Collection]
+        T --> X[InterviewArtifacts Collection]
+        T --> Y[UserSettings Collection]
+    end
+    
+    style A fill:#FF6B35,stroke:#000,color:#fff
+    style O fill:#4ECDC4,stroke:#000,color:#000
+    style N fill:#95E1D3,stroke:#000,color:#000

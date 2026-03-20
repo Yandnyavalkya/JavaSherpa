@@ -1,0 +1,79 @@
+graph TB
+    subgraph "Frontend - React Application"
+        A[User Browser] --> B[React App - Vite]
+        B --> C[Pages]
+        C --> D[Home Page]
+        C --> E[Auth Pages]
+        C --> F[Chat/Interview Page]
+        B --> G[Components]
+        G --> H[ChatPage]
+        G --> I[BotList]
+        G --> J[Settings Modal]
+        G --> K[Report Modal]
+        B --> L[Services]
+        L --> M[API Service]
+        L --> N[Axios Client]
+    end
+
+    subgraph "Backend - FastAPI Application"
+        O[FastAPI Server] --> P[Routers]
+        P --> Q[User Router]
+        P --> R[ChatBot Router]
+        O --> S[Services]
+        S --> T[User Service]
+        S --> U[ChatBot Service]
+        S --> V[Pinecone Service]
+        O --> W[Utils]
+        W --> X[Email Service]
+        W --> Y[TTS Service]
+        W --> Z[JWT Handler]
+        O --> AA[Models]
+        AA --> AB[DTOs - Pydantic]
+        AA --> AC[Schemas - MongoEngine]
+    end
+
+    subgraph "External Services"
+        AD[(MongoDB)]
+        AE[(Pinecone Vector DB)]
+        AF[Mistral AI LLM]
+        AG[SMTP Server - Gmail]
+    end
+
+    subgraph "Storage"
+        AH[/Upload Directory/]
+        AI[Transcript PDFs]
+        AJ[Detailed Report PDFs]
+        AK[Audio MP3 Files]
+    end
+
+    %% Frontend to Backend connections
+    M -->|HTTP/REST API| O
+    
+    %% Backend to External Services
+    T -->|CRUD Operations| AD
+    U -->|Save/Retrieve Data| AD
+    V -->|Vector Search| AE
+    V -->|Generate Questions/Evaluate| AF
+    U -->|Generate Reports| AF
+    X -->|Send Emails| AG
+    
+    %% Backend to Storage
+    U -->|Save PDFs| AH
+    Y -->|Generate Audio| AH
+    AH --> AI
+    AH --> AJ
+    AH --> AK
+    
+    %% User flows
+    A -.->|Login/Register| E
+    A -.->|Start Interview| F
+    A -.->|View Reports| K
+
+    style A fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style B fill:#2196F3,stroke:#1565C0,color:#fff
+    style O fill:#FF9800,stroke:#E65100,color:#fff
+    style AD fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style AE fill:#00BCD4,stroke:#006064,color:#fff
+    style AF fill:#E91E63,stroke:#880E4F,color:#fff
+    style AG fill:#F44336,stroke:#B71C1C,color:#fff
+    style AH fill:#795548,stroke:#3E2723,color:#fff

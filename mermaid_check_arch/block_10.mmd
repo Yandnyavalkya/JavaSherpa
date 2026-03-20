@@ -1,0 +1,16 @@
+flowchart TD
+  A[Interview summary generated] --> B[Clean text for TTS]
+  B --> C[Remove markdown formatting]
+  C --> D[Remove code blocks]
+  D --> E[Remove special symbols]
+  E --> F{TTS Engine}
+  F -->|Success| G[Use system voice]
+  F -->|Fail| H[Fallback TTS]
+  G --> I{Voice preference?}
+  I -->|Male| J[Select male voice]
+  I -->|Female| K[Select female voice]
+  J --> L[Generate audio]
+  K --> L
+  H --> L
+  L --> M[Save as MP3]
+  M --> N[Return file path]

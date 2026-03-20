@@ -12,19 +12,19 @@ classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10p
 %% ---- User + Frontend ----
 U((User))
 Browser[Web Browser]:::ui
-React[React SPA (Vite)<br/>Routing + UI]:::ui
+React[React SPA (Vite) Routing + UI]:::ui
 
 Home[Home (/)]:::ui
 About[About (/about)]:::ui
-Login[Login (/login)<br/>OTP modal for forgot password]:::ui
+Login[Login (/login) OTP modal for forgot password]:::ui
 Register[Register (/register)]:::ui
-Protected[Protected /default<br/>ProtectedRoute]:::ui
+Protected[Protected /default ProtectedRoute]:::ui
 
 Header[Header Layout (/default)]:::ui
-BotList[BotList<br/>Create / List Sessions]:::ui
-FileUpload[FileUpload<br/>Upload Materials]:::ui
-ChatPage[ChatPage<br/>Voice STT/TTS, Markdown, Reports]:::ui
-ClientCache[Browser localStorage<br/>(chat history cache)]:::ui
+BotList[BotList Create / List Sessions]:::ui
+FileUpload[FileUpload Upload Materials]:::ui
+ChatPage[ChatPage Voice STT/TTS, Markdown, Reports]:::ui
+ClientCache[Browser localStorage (chat history cache)]:::ui
 
 U --> Browser --> React
 React --> Home
@@ -39,11 +39,11 @@ Protected --> ChatPage
 ChatPage --> ClientCache
 
 %% ---- Backend ----
-API[FastAPI Server<br/>CORS + JWT Auth + Routers]:::api
+API[FastAPI Server CORS + JWT Auth + Routers]:::api
 
-UserRouter[User Router<br/>/user/*]:::api
-ChatBotRouter[ChatBot Router<br/>/chat-bot/*]:::api
-FilesRouter[Files Router<br/>/files/*]:::api
+UserRouter[User Router /user/*]:::api
+ChatBotRouter[ChatBot Router /chat-bot/*]:::api
+FilesRouter[Files Router /files/*]:::api
 
 Services[Services Orchestrator]:::api
 JWT[JWT Middleware]:::api
@@ -58,7 +58,7 @@ React -->|"HTTP requests"| API
 
 %% ---- Data Stores ----
 MongoDB[(MongoDB)]:::data
-UploadDir[Server Upload Directory<br/>PDF/MP3 artifacts]:::data
+UploadDir[Server Upload Directory PDF/MP3 artifacts]:::data
 
 UserRouter --> MongoDB
 ChatBotRouter --> MongoDB
@@ -68,7 +68,7 @@ ChatBotRouter --> UploadDir
 
 %% ---- External AI / Vector / Email ----
 Pinecone[Vector DB (Pinecone)]:::ext
-Mistral[Mistral AI<br/>Embeddings + Chat Responses]:::ext
+Mistral[Mistral AI Embeddings + Chat Responses]:::ext
 EmailSMTP[Email (SMTP/Gmail)]:::ext
 
 ChatBotRouter --> Pinecone
@@ -91,7 +91,7 @@ classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,r
 classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
 
 U((User))
-Login[Login Page<br/>Forgot password modal]:::ui
+Login[Login Page Forgot password modal]:::ui
 Register[Register Page]:::ui
 API[FastAPI /user endpoints]:::api
 DB[(MongoDB)]:::data
@@ -109,12 +109,12 @@ API --> JWT
 JWT -->|"Authorize"| U
 
 U --> Login
-Login -->|"POST /user/forgot-password<br/>email OTP"| API
+Login -->|"POST /user/forgot-password email OTP"| API
 API --> DB
 API -->|"send OTP email"| U
 
 U --> Login
-Login -->|"POST /user/reset-password<br/>(email, otp, newPassword)"| API
+Login -->|"POST /user/reset-password (email, otp, newPassword)"| API
 API --> DB
 API -->|"Password updated"| U
 ```
@@ -129,9 +129,9 @@ classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10p
 
 U((User))
 Protected[Protected /default UI]:::ui
-BotList[BotList<br/>Sessions]:::ui
-Upload[FileUpload<br/>PDF Materials]:::ui
-Chat[ChatPage<br/>Streaming chat + Voice]:::ui
+BotList[BotList Sessions]:::ui
+Upload[FileUpload PDF Materials]:::ui
+Chat[ChatPage Streaming chat + Voice]:::ui
 
 API[FastAPI chat-bot + files routers]:::api
 Pinecone[Vector DB (Pinecone)]:::ext

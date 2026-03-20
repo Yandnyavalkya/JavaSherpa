@@ -1,0 +1,10 @@
+graph TD
+  A[User APIs] --> B[POST /user/register]
+  A --> C[POST /user/login]
+  A --> D[GET /user/settings]
+  A --> E[POST /user/settings]
+
+  B -.->|Creates account| F[User Account]
+  C -.->|Returns token| G[JWT Token]
+  D -.->|Returns preferences| H[User Preferences]
+  E -.->|Updates preferences| H

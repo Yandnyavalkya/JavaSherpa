@@ -1,0 +1,30 @@
+graph TB
+    subgraph "Production Environment"
+        A[Load Balancer] --> B[Frontend Server - Nginx]
+        A --> C[Backend Server - Uvicorn]
+        
+        B --> D[React Static Files]
+        
+        C --> E[FastAPI Application]
+        E --> F[Worker Processes]
+        
+        E --> G[(MongoDB Atlas)]
+        E --> H[(Pinecone Cloud)]
+        E --> I[Mistral AI API]
+        E --> J[Gmail SMTP]
+        
+        E --> K[File Storage]
+        K --> L[PDF Files]
+        K --> M[Audio Files]
+    end
+    
+    subgraph "External Services"
+        G
+        H
+        I
+        J
+    end
+    
+    style A fill:#4CAF50,stroke:#000,color:#fff
+    style B fill:#2196F3,stroke:#000,color:#fff
+    style C fill:#FF9800,stroke:#000,color:#fff
