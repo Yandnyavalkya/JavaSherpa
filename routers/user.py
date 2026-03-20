@@ -1,8 +1,14 @@
-from fastapi import APIRouter,UploadFile,File,BackgroundTasks,Form
-from models.dto import ResetPassword, UpdateUser, UserLogin,UserRegister
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Form, Depends, Request
+from models.dto import (
+    ResetPassword,
+    UpdateUser,
+    UserLogin,
+    UserRegister,
+    ForgotPasswordRequest,
+    ResetPasswordWithOTP,
+)
 from services.user_service import UserQueries
 from utils.helper import get_current_token
-from fastapi import Depends, Request
 router = APIRouter() 
 
 userQueries = UserQueries()
@@ -14,6 +20,22 @@ async def create(data:UserRegister):
 @router.post("/login")
 async def login(data:UserLogin):
     return await userQueries.login(data)
+
+
+@router.post("/forgot-password")
+async def forgot_password(data: ForgotPasswordRequest):
+    """
+    Start password reset flow by sending an OTP to the registered email.
+    """
+    return await userQueries.request_password_reset(data)
+
+
+@router.post("/reset-password")
+async def reset_password(data: ResetPasswordWithOTP):
+    """
+    Reset password using email + OTP + new password.
+    """
+    return await userQueries.reset_password_with_otp(data)
 
  
 @router.get("")

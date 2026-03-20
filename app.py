@@ -18,7 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-exempt_routes=["/user/login", "/user/register","/user/verify-email","/user/reset-password" ,"/docs","/openapi.json"]
+exempt_routes=[
+    "/user/login",
+    "/user/register",
+    "/user/verify-email",
+    "/user/forgot-password",
+    "/user/reset-password",
+    "/docs",
+    "/openapi.json",
+]
 
 app.add_middleware(CustomExceptionHandler)
 app.add_middleware(JwtMiddleware,exempt_routes=exempt_routes)

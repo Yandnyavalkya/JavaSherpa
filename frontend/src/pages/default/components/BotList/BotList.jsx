@@ -4,6 +4,7 @@ import { Table, Pagination, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../../../services/Api.service";
 import { toast } from "react-toastify";
+import { getErrorMessage, notifyApiError, notifyError, notifySuccess, notifyWarning } from "../../../../utils/notify";
 import { FaMicrophone, FaTrash, FaUpload } from "react-icons/fa";
 
 const BotList = () => {
@@ -30,7 +31,7 @@ const BotList = () => {
     const { bot_name, description } = formData;
 
     if (!bot_name || !description) {
-      toast.error("Please fill in all fields.");
+      notifyWarning("Please fill in all fields to create an interview session.");
       setLoading(false);
 
       return;
@@ -40,13 +41,13 @@ const BotList = () => {
     setLoading(false);
 
     if (error) {
-      toast.error(error.response.data.message);
+      notifyApiError(error, "Could not create session. Please try again.");
       return;
     }
 
     if (data) {
       fetchAllChatBots();
-      toast.success(data.message);
+      notifySuccess(data.message || "Session created successfully.");
     }
 
     setFormData({ bot_name: "", description: "" });
@@ -56,7 +57,7 @@ const BotList = () => {
     let { data, error } = await ApiService.getAllChatBots({});
 
     if (error) {
-      toast.error(error.response.data.message);
+      notifyApiError(error, "Could not load sessions. Please refresh the page.");
       return;
     }
 
@@ -75,12 +76,12 @@ const BotList = () => {
     setLoading(false);
 
     if (error) {
-      toast.error(error.response?.data?.message || "Failed to delete session");
+      notifyApiError(error, "Failed to delete session. Please try again.");
       return;
     }
 
     if (data) {
-      toast.success(data.message || "Session deleted successfully");
+      notifySuccess(data.message || "Session deleted successfully.");
       fetchAllChatBots();
     }
   };

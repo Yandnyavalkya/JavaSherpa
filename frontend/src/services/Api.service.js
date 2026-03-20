@@ -34,6 +34,24 @@ const ApiService = {
     return { data, error, loading };
   },
 
+  requestPasswordReset: async (email) => {
+    const { data, loading, error } = await AxiosClient({
+      method: "POST",
+      url: `user/forgot-password`,
+      data: { email },
+    });
+    return { data, error, loading };
+  },
+
+  resetPasswordWithOtp: async ({ email, otp, newPassword, confirmPassword }) => {
+    const { data, loading, error } = await AxiosClient({
+      method: "POST",
+      url: `user/reset-password`,
+      data: { email, otp, newPassword, confirmPassword },
+    });
+    return { data, error, loading };
+  },
+
    register: async (payload) => {
     const { data, loading, error } = await AxiosClient({
       method: "POST",

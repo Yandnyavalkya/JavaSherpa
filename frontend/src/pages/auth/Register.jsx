@@ -3,6 +3,7 @@ import "./Register.scss";
 import { Link, useNavigate } from "react-router-dom";
 import ApiService from "../../services/Api.service";
 import { toast } from "react-toastify";
+import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "../../utils/notify";
 import StarBackground from "../../components/StarBackground/StarBackground";
 import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -14,7 +15,6 @@ const Register = () => {
     name: "",
     email: "",
     phone_number: "",
-    company_name: "",
     password: "",
   });
 
@@ -27,20 +27,20 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, phone_number, company_name, password } = formData;
+    const { name, email, phone_number, password } = formData;
 
-    if (!name || !email || !phone_number || !company_name || !password) {
-      toast.error("Please fill in all fields.");
+    if (!name || !email || !phone_number || !password) {
+      notifyWarning("Please fill in all fields.");
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
-      toast.error("Please enter a valid email address.");
+      notifyWarning("Please enter a valid email address.");
       return;
     }
 
     if (!/^[0-9]{10}$/.test(phone_number)) {
-      toast.error("Please enter a valid 10-digit phone number.");
+      notifyWarning("Please enter a valid 10-digit phone number.");
       return;
     }
 
@@ -51,12 +51,24 @@ const Register = () => {
     setLoading(false);
 
     if (error) {
-      toast.error(error.response.data.error);
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Registration failed. Please try again.";
+
+      if (backendMessage.toLowerCase().includes("user already exist")) {
+        notifyInfo("You are already registered with us. Redirecting you to login...");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1200);
+      } else {
+        notifyError(backendMessage);
+      }
       return;
     }
 
     if (data) {
-      toast.success(data.message);
+      notifySuccess(data.message || "Registered successfully. Please log in.");
       navigate("/login");
     }
   };
@@ -113,18 +125,6 @@ const Register = () => {
                   className="form-control"
                   placeholder="Enter your phone number"
                   value={formData.phone_number}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Company</label>
-                <input
-                  type="text"
-                  name="company_name"
-                  className="form-control"
-                  placeholder="Enter your company name"
-                  value={formData.company_name}
                   onChange={handleChange}
                 />
               </div>

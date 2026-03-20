@@ -2,7 +2,16 @@ from enum import Enum
 from typing import Any
 from models.dto import Product, Roles, Status
 from datetime import datetime, timedelta
-from mongoengine import Document, StringField, signals, ReferenceField,DateTimeField,IntField,ObjectIdField
+from mongoengine import (
+    Document,
+    StringField,
+    signals,
+    ReferenceField,
+    DateTimeField,
+    IntField,
+    ObjectIdField,
+    BooleanField,
+)
 import bcrypt
 
 from utils.jwt import JwtHandler
@@ -90,4 +99,16 @@ class InterviewArtifacts(Document):
     created_at = DateTimeField(default=datetime.utcnow)
     sent_to_email = DateTimeField()  # Timestamp when email was sent
     sent_to_drive = DateTimeField()  # Timestamp when added to drive
+
+
+class PasswordResetOTP(Document):
+    """
+    Stores short-lived OTP codes for password reset.
+    """
+    meta = {'collection': 'passwordResetOtps'}
+    user_id = ReferenceField(User, required=True)
+    otp = StringField(required=True)
+    expires_at = DateTimeField(required=True)
+    used = BooleanField(default=False)
+    created_at = DateTimeField(default=datetime.utcnow)
         

@@ -9,6 +9,7 @@ python-dotenv
 langchain-core 
 langchain 
 langchain_community
+langchain-text-splitters
 langchain-mistralai
 pinecone-client 
 python-multipart 

@@ -69,6 +69,17 @@ class ResetPassword(BaseModel):
     newPassword:str  
     confirmPassword:str    
 
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordWithOTP(BaseModel):
+    email: str
+    otp: str
+    newPassword: str
+    confirmPassword: str
+
 class Status(str,Enum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"

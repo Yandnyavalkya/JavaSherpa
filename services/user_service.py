@@ -1,12 +1,12 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import os
-from models.dto import UpdateUser
-from models.schemas import User  
-from utils.success import result,success,error
+import random
 from bson import ObjectId
-import bcrypt
-from models.schemas import UserSettings
-from datetime import datetime
+
+from models.dto import UpdateUser, ForgotPasswordRequest, ResetPasswordWithOTP
+from models.schemas import User, UserSettings, PasswordResetOTP
+from utils.success import result, success, error, invalid_input
+from utils.email_service import send_password_reset_otp_email
 
 
 class UserQueries:
@@ -82,7 +82,67 @@ class UserQueries:
                doc.reload()
           return result(doc.to_mongo().to_dict(), 'Settings updated')
 
-  
-        
-        
-        
+    async def request_password_reset(self, data: ForgotPasswordRequest):
+          """
+          Generate an OTP and send it to the user's registered email for password reset.
+          """
+          user = User.objects(email=data.email).first()
+          if not user:
+               return error('User not found')
+
+          # Generate a 6-digit OTP
+          otp = f"{random.randint(100000, 999999)}"
+          validity_minutes = 15
+          expires_at = datetime.utcnow() + timedelta(minutes=validity_minutes)
+
+          # Invalidate previous OTPs for this user
+          PasswordResetOTP.objects(user_id=user).update(set__used=True)
+
+          # Create new OTP document
+          otp_doc = PasswordResetOTP(user_id=user, otp=otp, expires_at=expires_at)
+          otp_doc.save()
+
+          # Send email
+          email_sent = send_password_reset_otp_email(
+               user_email=user.email,
+               user_name=user.name,
+               otp=otp,
+               valid_minutes=validity_minutes,
+          )
+
+          if not email_sent:
+               return error('Failed to send OTP email. Please try again later.')
+
+          return success('OTP has been sent to your registered email.')
+
+    async def reset_password_with_otp(self, data: ResetPasswordWithOTP):
+          """
+          Reset the user's password after validating the OTP.
+          """
+          if data.newPassword != data.confirmPassword:
+               return invalid_input('New password and confirm password do not match')
+
+          user = User.objects(email=data.email).first()
+          if not user:
+               return error('User not found')
+
+          # Find a valid OTP
+          now = datetime.utcnow()
+          otp_doc = PasswordResetOTP.objects(
+               user_id=user,
+               otp=data.otp,
+               used=False,
+               expires_at__gt=now
+          ).first()
+
+          if not otp_doc:
+               return error('Invalid or expired OTP')
+
+          # Update password; pre_save will hash it
+          user.password = data.newPassword
+          user.save()
+
+          # Mark OTP as used
+          otp_doc.update(used=True)
+
+          return success('Password has been reset successfully')

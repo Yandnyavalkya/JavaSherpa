@@ -10,6 +10,7 @@ import { getVariable, removeVariable } from "../../../../utils/localStorage";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "react-toastify";
+import { notifyApiError, notifyInfo, notifySuccess, notifyWarning } from "../../../../utils/notify";
 import { 
   FaMicrophone, 
   FaDownload, 
@@ -256,7 +257,7 @@ const ChatPage = () => {
 
   const viewDetailedReport = async () => {
     if (!namespaceId || messages.length === 0) {
-      alert('No interview session found or messages are empty.');
+      notifyWarning("No interview session found. Please complete an interview to generate a report.");
       return;
     }
     try {
@@ -271,7 +272,7 @@ const ChatPage = () => {
                            response.error.message || 
                            'Failed to load detailed report.';
         setReportError(errorMessage);
-        alert(errorMessage);
+        notifyApiError(response.error, errorMessage);
         return;
       }
       
@@ -285,7 +286,7 @@ const ChatPage = () => {
               const errorData = JSON.parse(text);
               console.error('Error in blob response:', errorData);
               setReportError(errorData.message || 'Failed to load detailed report.');
-              alert(errorData.message || 'Failed to load detailed report.');
+              notifyApiError({ response: { data: errorData } }, errorData.message || 'Failed to load detailed report.');
             } catch {
               // If it's not JSON, it might be a small PDF, proceed
               if (response.data.type === 'application/pdf') {
@@ -293,13 +294,13 @@ const ChatPage = () => {
                 setReportBlob(response.data);
                 setReportUrl(url);
                 setShowReportModal(true);
-                toast.info(
+                notifyInfo(
                   "An email will be sent shortly with the following attachments to your registered email address: Interview Transcript (PDF), Detailed Report (PDF), and Summary Audio (MP3).",
                   { autoClose: 6000 }
                 );
               } else {
                 setReportError('Unexpected response format.');
-                alert('Unexpected response format from server.');
+                notifyWarning('Unexpected response format from server.');
               }
             }
           } else if (response.data.type === 'application/pdf') {
@@ -308,23 +309,23 @@ const ChatPage = () => {
             setReportBlob(response.data);
             setReportUrl(url);
             setShowReportModal(true);
-            toast.info(
+            notifyInfo(
               "An email will be sent shortly with the following attachments to your registered email address: Interview Transcript (PDF), Detailed Report (PDF), and Summary Audio (MP3).",
               { autoClose: 6000 }
             );
           } else {
             setReportError('Response is not a PDF file.');
-            alert('Response is not a PDF file.');
+            notifyWarning('Response is not a PDF file.');
           }
         } else {
           // Response is not a blob, might be an error
           console.error('Unexpected response type:', typeof response.data);
           setReportError('Unexpected response format.');
-          alert('Unexpected response format from server.');
+          notifyWarning('Unexpected response format from server.');
         }
       } else {
         setReportError('No data received from server.');
-        alert('No data received from server.');
+        notifyWarning('No data received from server.');
       }
     } catch (error) {
       console.error('Error viewing detailed report:', error);
@@ -332,7 +333,7 @@ const ChatPage = () => {
                           error.message || 
                           'Failed to load detailed report. Please try again.';
       setReportError(errorMessage);
-      alert(errorMessage);
+      notifyApiError(error, errorMessage);
     } finally {
       setLoading(false);
     }
@@ -374,9 +375,9 @@ const ChatPage = () => {
           // Fallback: copy link or show share options
           if (reportUrl) {
             await navigator.clipboard.writeText(window.location.href);
-            alert('Report link copied to clipboard! You can share this page.');
+            notifySuccess('Report link copied to clipboard! You can share this page.');
           } else {
-            alert('Sharing is not supported on this device. Please use the download option.');
+            notifyWarning('Sharing is not supported on this device. Please use the download option.');
           }
         }
       } catch (error) {
@@ -390,7 +391,7 @@ const ChatPage = () => {
   // Copy code to clipboard
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    notifySuccess("Copied to clipboard");
   };
 
   const getPreferredVoice = () => {
@@ -805,114 +806,173 @@ const ChatPage = () => {
                             pre: ({ children, ...props }) => {
                               const codeProps = children?.props || {};
                               const match = /language-(\w+)/.exec(codeProps.className || "");
-                              
-                              // Extract code string - handle both string and array children
-                              let codeString = "";
-                              if (typeof codeProps.children === 'string') {
-                                codeString = codeProps.children;
-                              } else if (Array.isArray(codeProps.children)) {
-                                codeString = codeProps.children.map(c => {
-                                  if (typeof c === 'string') return c;
-                                  if (c?.props?.children) return String(c.props.children);
-                                  return String(c || '');
-                                }).join('');
-                              } else if (codeProps.children?.props?.children) {
-                                codeString = String(codeProps.children.props.children);
-                              } else {
-                                codeString = String(codeProps.children || "");
-                              }
-                              
-                              // Remove trailing newline
+                              const detectedLang = match?.[1]?.toLowerCase() || null;
+
+                              // Extract code string robustly (ReactMarkdown sometimes provides nested nodes/arrays)
+                              const extractNodeText = (node) => {
+                                if (node == null) return "";
+                                if (typeof node === "string") return node;
+                                if (Array.isArray(node)) return node.map(extractNodeText).join("");
+                                if (typeof node === "object" && node?.props?.children !== undefined) {
+                                  return extractNodeText(node.props.children);
+                                }
+                                return String(node);
+                              };
+
+                              let codeString = extractNodeText(codeProps.children);
+                              codeString = codeString.replace(/\r\n/g, "\n");
+                              // Remove trailing newline (helps avoid extra blank line at bottom)
                               codeString = codeString.replace(/\n$/, "");
-                              
-                              // Clean up: Remove any language identifier text that might have leaked into code
+
                               if (codeString) {
-                                // Remove language identifiers at the start (case insensitive) - more aggressive
-                                codeString = codeString.replace(/^(java|javascript|js|python|py|html|css|json|xml|sql|bash|sh|yaml|yml|md|markdown|text|plain)\s*/i, '');
-                                
-                                // Remove any uppercase language identifiers (like "JAVAVEHIC", "JAVA", etc.)
-                                // Match patterns like "JAVAVEHIC", "JAVA", "JAVACODE", etc.
-                                codeString = codeString.replace(/^[A-Z]{2,}[A-Z]*\s*/g, '');
-                                
-                                // Remove line numbers at the start (like "1", "1.", etc.)
-                                codeString = codeString.replace(/^\d+\.?\s*\n?/g, '');
-                                
-                                // Remove any remaining uppercase words at the very start that look like language identifiers
-                                codeString = codeString.replace(/^([A-Z]{3,})\s*\n?/g, '');
-                                
+                                const knownLangs = [
+                                  "java",
+                                  "javascript",
+                                  "js",
+                                  "python",
+                                  "py",
+                                  "html",
+                                  "css",
+                                  "json",
+                                  "xml",
+                                  "sql",
+                                  "bash",
+                                  "sh",
+                                  "yaml",
+                                  "yml",
+                                  "md",
+                                  "markdown",
+                                  "text",
+                                  "plain",
+                                ];
+
+                                // Remove leaked "language/title" text lines that sometimes arrive above the real code.
+                                const lines = codeString.split("\n");
+                                if (lines.length > 1) {
+                                  const first = lines[0].trim();
+                                  const isLangLine =
+                                    (detectedLang && first.toLowerCase() === detectedLang) ||
+                                    (detectedLang &&
+                                      first.toLowerCase() === `language-${detectedLang}`) ||
+                                    new RegExp(
+                                      `^(?:language-)?(?:${knownLangs.join("|")})$`,
+                                      "i"
+                                    ).test(first);
+
+                                  const isGenericTitleLine = /^(?:code|title|example)\s*[:\-]?\s*$/i.test(
+                                    first
+                                  );
+
+                                  if (isLangLine || isGenericTitleLine) {
+                                    lines.shift();
+                                  }
+                                }
+
+                                codeString = lines.join("\n");
+
+                                // Remove leading line number prefix from the first line only.
+                                // (Keeps inner line numbers intact, if any.)
+                                codeString = codeString.replace(/^\s*\d+\.?\s*[-:.)]?\s*/m, "");
+
                                 // If code is Java and appears to be on a single line, format it
-                                if (match && match[1].toLowerCase() === 'java' && codeString) {
-                                  // Check if code has very few line breaks (likely single-line)
-                                  const lines = codeString.split('\n').filter(l => l.trim().length > 0);
-                                  const isSingleLine = lines.length <= 3 && codeString.length > 30;
-                                  
+                                if (detectedLang === "java" && codeString) {
+                                  const nonEmptyLines = codeString
+                                    .split("\n")
+                                    .filter((l) => l.trim().length > 0);
+                                  const isSingleLine = nonEmptyLines.length <= 3 && codeString.length > 30;
+
                                   if (isSingleLine) {
                                     // Format Java code by adding line breaks
                                     let formatted = codeString.trim();
-                                    
+
                                     // Fix patterns where text runs into code (like "a//" or "aclass")
-                                    formatted = formatted.replace(/([a-zA-Z0-9])(\/\/)/g, '$1\n$2');
-                                    formatted = formatted.replace(/([a-zA-Z0-9])(class|interface|enum|public|private|protected|static|final|abstract|@Override)/g, '$1\n$2');
-                                    
+                                    formatted = formatted.replace(
+                                      /([a-zA-Z0-9])(\/\/)/g,
+                                      "$1\n$2"
+                                    );
+                                    formatted = formatted.replace(
+                                      /([a-zA-Z0-9])(class|interface|enum|public|private|protected|static|final|abstract|@Override)/g,
+                                      "$1\n$2"
+                                    );
+
                                     // Add line breaks after semicolons (but not inside strings)
-                                    formatted = formatted.replace(/;(?![^"]*"[^"]*;)/g, ';\n');
-                                    
+                                    formatted = formatted.replace(
+                                      /;(?![^"]*"[^"]*;)/g,
+                                      ";\n"
+                                    );
+
                                     // Add line breaks after opening braces
-                                    formatted = formatted.replace(/\{/g, '{\n');
-                                    
+                                    formatted = formatted.replace(/\{/g, "{\n");
                                     // Add line breaks before closing braces
-                                    formatted = formatted.replace(/\}/g, '\n}');
-                                    
+                                    formatted = formatted.replace(/\}/g, "\n}");
+
                                     // Add line breaks after class/interface/enum declarations
-                                    formatted = formatted.replace(/(class|interface|enum)\s+(\w+)([^{]*)\{/g, '$1 $2$3 {\n');
-                                    
+                                    formatted = formatted.replace(
+                                      /(class|interface|enum)\s+(\w+)([^{]*)\{/g,
+                                      "$1 $2$3 {\n"
+                                    );
+
                                     // Add line breaks after method declarations
-                                    formatted = formatted.replace(/(\))\s*\{/g, '$1 {\n');
-                                    
+                                    formatted = formatted.replace(
+                                      /(\))\s*\{/g,
+                                      "$1 {\n"
+                                    );
+
                                     // Add line breaks after @Override
-                                    formatted = formatted.replace(/(@Override)\s*/g, '$1\n');
-                                    
+                                    formatted = formatted.replace(
+                                      /(@Override)\s*/g,
+                                      "$1\n"
+                                    );
+
                                     // Add line breaks before comments
-                                    formatted = formatted.replace(/([^\/\n])\/\//g, '$1\n//');
-                                    
+                                    formatted = formatted.replace(
+                                      /([^\/\n])\/\//g,
+                                      "$1\n//"
+                                    );
+
                                     // Clean up multiple consecutive newlines
-                                    formatted = formatted.replace(/\n{3,}/g, '\n\n');
-                                    
+                                    formatted = formatted.replace(/\n{3,}/g, "\n\n");
+
                                     // Split and add indentation
-                                    const formattedLines = formatted.split('\n');
+                                    const formattedLines = formatted.split("\n");
                                     let indentLevel = 0;
                                     const indentSize = 4;
-                                    
-                                    codeString = formattedLines.map(line => {
-                                      const trimmed = line.trim();
-                                      if (!trimmed) return '';
-                                      
-                                      // Decrease indent before closing braces
-                                      if (trimmed.startsWith('}')) {
-                                        indentLevel = Math.max(0, indentLevel - 1);
-                                      }
-                                      
-                                      const indented = ' '.repeat(indentLevel * indentSize) + trimmed;
-                                      
-                                      // Increase indent after opening braces
-                                      if (trimmed.includes('{') && !trimmed.startsWith('}')) {
-                                        indentLevel++;
-                                      }
-                                      
-                                      return indented;
-                                    }).filter(l => l.length > 0).join('\n');
+
+                                    codeString = formattedLines
+                                      .map((line) => {
+                                        const trimmed = line.trim();
+                                        if (!trimmed) return "";
+
+                                        // Decrease indent before closing braces
+                                        if (trimmed.startsWith("}")) {
+                                          indentLevel = Math.max(0, indentLevel - 1);
+                                        }
+
+                                        const indented =
+                                          " ".repeat(indentLevel * indentSize) + trimmed;
+
+                                        // Increase indent after opening braces
+                                        if (trimmed.includes("{") && !trimmed.startsWith("}")) {
+                                          indentLevel++;
+                                        }
+
+                                        return indented;
+                                      })
+                                      .filter((l) => l.length > 0)
+                                      .join("\n");
                                   }
                                 }
-                                
+
                                 // Trim whitespace but preserve internal formatting
                                 codeString = codeString.trim();
                               }
                               
-                              if (match && codeString) {
+                              if (codeString) {
+                                const languageLabel = match?.[1] || detectedLang || "code";
                                 return (
                                   <div className="code-block-wrapper">
                                     <div className="code-block-header">
-                                      <span className="code-language">{match[1]}</span>
+                                      <span className="code-language">{languageLabel}</span>
                                       <button
                                         className="code-copy-btn"
                                         onClick={() => {

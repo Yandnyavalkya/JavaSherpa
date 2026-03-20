@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from pinecone import Pinecone
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.output_parsers import StrOutputParser
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 
 load_dotenv()

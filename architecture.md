@@ -1,73 +1,167 @@
-graph TB
-%% === STYLES ===
-classDef core fill:#1E90FF,stroke:#000,color:#000,stroke-width:2px,rx:10px,ry:10px;
-classDef db fill:#9ACD32,stroke:#000,color:#000,stroke-width:2px,rx:10px,ry:10px;
-classDef external fill:#FFD700,stroke:#000,color:#000,stroke-width:2px,rx:10px,ry:10px;
+# JavaSherpa - Architecture Diagrams (Portrait / Print Friendly)
 
-%% === USERS ===
-User(("User<br/>Web Interface"))
+## 1) System Overview (Vertical)
+```mermaid
+graph TD
+%% ---- Styles (kept simple for portrait rendering) ----
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
 
-%% === FRONTEND LAYER ===
-subgraph "Frontend Layer"
-  Frontend["React SPA<br/>UI, Routing, State Management"]:::core
-end
+%% ---- User + Frontend ----
+U((User))
+Browser[Web Browser]:::ui
+React[React SPA (Vite)<br/>Routing + UI]:::ui
 
-User -->|"interacts with"| Frontend
+Home[Home (/)]:::ui
+About[About (/about)]:::ui
+Login[Login (/login)<br/>OTP modal for forgot password]:::ui
+Register[Register (/register)]:::ui
+Protected[Protected /default<br/>ProtectedRoute]:::ui
 
-%% === BACKEND LAYER ===
-subgraph "Backend Layer"
-  API["FastAPI Server<br/>Business Logic, API Endpoints"]:::core
-  UserService["User Service<br/>CRUD, Auth, Settings"]:::core
-  ChatBotService["Chat Bot Service<br/>CRUD, Chat Logic"]:::core
-  FileService["File Management Service<br/>Upload, Retrieve, Delete"]:::core
-  PineconeService["Pinecone Service<br/>Vector Management, Similarity Search"]:::core
-end
+Header[Header Layout (/default)]:::ui
+BotList[BotList<br/>Create / List Sessions]:::ui
+FileUpload[FileUpload<br/>Upload Materials]:::ui
+ChatPage[ChatPage<br/>Voice STT/TTS, Markdown, Reports]:::ui
+ClientCache[Browser localStorage<br/>(chat history cache)]:::ui
 
-Frontend -->|"API calls"| API
-API -->|"handles user requests"| UserService
-API -->|"handles chat requests"| ChatBotService
-API -->|"handles file requests"| FileService
-ChatBotService -->|"uses"| PineconeService
+U --> Browser --> React
+React --> Home
+React --> About
+React --> Login
+React --> Register
+React --> Protected
+Protected --> Header
+Protected --> BotList
+Protected --> FileUpload
+Protected --> ChatPage
+ChatPage --> ClientCache
 
-%% === PERSISTENCE LAYER ===
-subgraph "Persistence Layer"
-  MongoDB["MongoDB<br/>User, Bot, Transcript Data"]:::db
-end
+%% ---- Backend ----
+API[FastAPI Server<br/>CORS + JWT Auth + Routers]:::api
 
-UserService -->|"stores user data"| MongoDB
-ChatBotService -->|"stores chat transcripts"| MongoDB
-FileService -->|"stores file metadata"| MongoDB
+UserRouter[User Router<br/>/user/*]:::api
+ChatBotRouter[ChatBot Router<br/>/chat-bot/*]:::api
+FilesRouter[Files Router<br/>/files/*]:::api
 
-%% === EXTERNAL SERVICES ===
-subgraph "External Services"
-  Pinecone["Pinecone<br/>Vector Similarity Search"]:::external
-  MistralAI["MistralAI<br/>Embeddings, Chat Responses"]:::external
-end
+Services[Services Orchestrator]:::api
+JWT[JWT Middleware]:::api
 
-PineconeService -->|"interacts with"| Pinecone
-ChatBotService -->|"uses"| MistralAI
+API --> UserRouter
+API --> ChatBotRouter
+API --> FilesRouter
+API --> JWT
+API --> Services
 
-%% === CONTROL & DATA FLOW ===
-API -->|"initializes"| MongoDB
-API -->|"uses JWT Middleware"| UserService
-API -->|"uses CORS Middleware"| UserService
-UserService -->|"validates user"| MongoDB
-ChatBotService -->|"retrieves vectors"| PineconeService
-ChatBotService -->|"sends chat prompts"| MistralAI
+React -->|"HTTP requests"| API
 
-%% === FILE STORAGE ===
-subgraph "File Storage"
-  LocalStorage["Local File Storage<br/>Uploaded Files"]:::db
-end
+%% ---- Data Stores ----
+MongoDB[(MongoDB)]:::data
+UploadDir[Server Upload Directory<br/>PDF/MP3 artifacts]:::data
 
-FileService -->|"stores files"| LocalStorage
-FileService -->|"stores metadata"| MongoDB
+UserRouter --> MongoDB
+ChatBotRouter --> MongoDB
+FilesRouter --> MongoDB
+FilesRouter --> UploadDir
+ChatBotRouter --> UploadDir
 
-%% === SUMMARY OF RELATIONSHIPS ===
-API -->|"orchestrates"| UserService
-API -->|"orchestrates"| ChatBotService
-API -->|"orchestrates"| FileService
-UserService -->|"depends on"| MongoDB
-ChatBotService -->|"depends on"| PineconeService
-FileService -->|"depends on"| MongoDB
-FileService -->|"depends on"| LocalStorage
+%% ---- External AI / Vector / Email ----
+Pinecone[Vector DB (Pinecone)]:::ext
+Mistral[Mistral AI<br/>Embeddings + Chat Responses]:::ext
+EmailSMTP[Email (SMTP/Gmail)]:::ext
+
+ChatBotRouter --> Pinecone
+ChatBotRouter --> Mistral
+ChatBotRouter --> EmailSMTP
+
+%% ---- Key user interactions (portrait-friendly flow) ----
+UserRouter -->|"forgot password OTP"| EmailSMTP
+ChatPage -->|"POST chat-bot/chat (streaming)"| ChatBotRouter
+ChatPage -->|"POST /history/pdf + /report/detailed"| ChatBotRouter
+BotList -->|"POST chat-bot/"| ChatBotRouter
+FileUpload -->|"POST files/fileUpload"| FilesRouter
+```
+
+## 2) Authentication + OTP Password Reset (Vertical)
+```mermaid
+graph TD
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+
+U((User))
+Login[Login Page<br/>Forgot password modal]:::ui
+Register[Register Page]:::ui
+API[FastAPI /user endpoints]:::api
+DB[(MongoDB)]:::data
+JWT[JWT Token]:::api
+
+U --> Register
+Register -->|"POST /user/register"| API
+API --> DB
+API -->|"success"| Login
+
+U --> Login
+Login -->|"POST /user/login"| API
+API --> DB
+API --> JWT
+JWT -->|"Authorize"| U
+
+U --> Login
+Login -->|"POST /user/forgot-password<br/>email OTP"| API
+API --> DB
+API -->|"send OTP email"| U
+
+U --> Login
+Login -->|"POST /user/reset-password<br/>(email, otp, newPassword)"| API
+API --> DB
+API -->|"Password updated"| U
+```
+
+## 3) Interview Session: Create → Upload → Chat → Report (Vertical)
+```mermaid
+graph TD
+classDef ui fill:#2196F3,stroke:#0D47A1,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef api fill:#1E90FF,stroke:#0B3D91,color:#fff,stroke-width:1.5px,rx:10px,ry:10px;
+classDef data fill:#9ACD32,stroke:#4E7A1D,color:#0B1F00,stroke-width:1.5px,rx:10px,ry:10px;
+classDef ext fill:#FFD700,stroke:#8A6D00,color:#1A1A1A,stroke-width:1.5px,rx:10px,ry:10px;
+
+U((User))
+Protected[Protected /default UI]:::ui
+BotList[BotList<br/>Sessions]:::ui
+Upload[FileUpload<br/>PDF Materials]:::ui
+Chat[ChatPage<br/>Streaming chat + Voice]:::ui
+
+API[FastAPI chat-bot + files routers]:::api
+Pinecone[Vector DB (Pinecone)]:::ext
+Mistral[Mistral AI]:::ext
+
+Mongo[(MongoDB)]:::data
+Artifacts[Upload Dir + Generated PDFs/MP3]:::data
+
+U --> Protected
+Protected --> BotList
+BotList -->|"POST chat-bot/" (create session)"| API
+BotList -->|"GET chat-bot/all"| API
+API --> Mongo
+
+Protected --> Upload
+Upload -->|"GET files?chatBotId="| API
+Upload -->|"POST files/fileUpload"| API
+API --> Mongo
+API --> Artifacts
+
+Protected --> Chat
+Chat -->|"POST chat-bot/chat (streaming)"| API
+API --> Pinecone
+API --> Mistral
+API --> Mongo
+
+Chat -->|"Save history: POST chat-bot/history"| API
+Chat -->|"Reset: POST chat-bot/reset"| API
+
+Chat -->|"Download transcript: POST chat-bot/history/pdf"| API
+Chat -->|"Detailed report: POST chat-bot/report/detailed"| API
+API --> Artifacts
+```

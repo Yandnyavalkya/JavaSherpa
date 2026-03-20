@@ -32,13 +32,15 @@
     }
 
     .register-card {
-      background: var(--bg-card);
+      background: radial-gradient(circle at top, rgba(168, 85, 247, 0.14), transparent 55%),
+        radial-gradient(circle at bottom, rgba(34, 211, 238, 0.1), transparent 55%),
+        rgba(0, 0, 0, 0.18);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-radius: 1.5rem;
+      border-radius: 1.75rem;
       padding: 3rem;
       width: 100%;
-      border: 1px solid var(--border-secondary);
+      border: 1px solid var(--border-primary);
       box-shadow: var(--shadow-lg);
       animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -47,10 +49,8 @@
 
       &:hover {
         transform: translateY(-4px);
-        border-color: rgba(168, 85, 247, 0.5);
-        box-shadow: 
-          0 25px 70px rgba(168, 85, 247, 0.3),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+        border-color: rgba(168, 85, 247, 0.55);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.6);
       }
 
       .register-title {
@@ -85,8 +85,6 @@
         &:nth-child(2) { animation-delay: 0.2s; }
         &:nth-child(3) { animation-delay: 0.25s; }
         &:nth-child(4) { animation-delay: 0.3s; }
-        &:nth-child(5) { animation-delay: 0.35s; }
-        &:nth-child(6) { animation-delay: 0.4s; }
 
         .form-label {
           display: block;
@@ -239,18 +237,23 @@
         animation: fadeInUp 0.8s ease-out 0.7s both;
 
         .back-link {
-          color: var(--accent-secondary);
+          color: var(--text-primary);
           text-decoration: none;
           font-size: 0.95rem;
-          font-weight: 500;
-          transition: all 0.3s ease;
+          font-weight: 800;
+          transition: all 0.25s ease;
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
+          border-radius: 1rem;
+          padding: 0.7rem 1rem;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(102, 126, 234, 0.25);
 
           &:hover {
-            color: var(--accent-tertiary);
-            transform: translateX(-4px);
+            transform: translateY(-2px);
+            border-color: rgba(168, 85, 247, 0.55);
+            background: rgba(255, 255, 255, 0.06);
           }
         }
       }
@@ -266,33 +269,22 @@
           margin: 0;
 
           .link-primary {
-            color: var(--accent-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            color: var(--text-primary);
             text-decoration: none;
-            font-weight: 700;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            display: inline-block;
-            padding: 0 2px;
-
-            &::after {
-              content: "";
-              position: absolute;
-              bottom: -2px;
-              left: 0;
-              width: 0;
-              height: 2.5px;
-              background: linear-gradient(90deg, #f093fb, #667eea);
-              border-radius: 1px;
-              transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
+            font-weight: 800;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
             &:hover {
-              color: var(--accent-primary);
-              transform: translateY(-1px);
-              
-              &::after {
-                width: 100%;
-              }
+              transform: translateY(-2px);
+              border-color: rgba(168, 85, 247, 0.55);
+              background: rgba(255, 255, 255, 0.06);
             }
           }
         }

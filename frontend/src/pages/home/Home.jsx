@@ -1,22 +1,22 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Home.scss";
-import FeaturesSection from "../../components/FeaturesSection/FeaturesSection";
 import StarBackground from "../../components/StarBackground/StarBackground";
 import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
 import Logo from "../../components/Logo/Logo";
-import { 
-  FaRocket, 
-  FaBullseye, 
-  FaMicrophone, 
-  FaRobot, 
-  FaBook, 
+import {
+  FaRocket,
+  FaMicrophone,
+  FaRobot,
+  FaBook,
   FaStar,
   FaArrowRight,
   FaEnvelope,
   FaMobileAlt,
-  FaBriefcase,
-  FaTwitter
+  FaGithub,
+  FaLinkedin,
+  FaTwitter,
+  FaInstagram,
 } from "react-icons/fa";
 
 const Home = () => {
@@ -63,39 +63,86 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="home-features">
-          <FeaturesSection />
-        </div>
+        <div className="home-cards-section">
+          <div className="home-cards-grid">
+            <div className="profile-card home-feature-card">
+              <div className="profile-photo home-feature-photo" aria-hidden="true">
+                <FaMicrophone />
+              </div>
+              <div className="profile-body">
+                <div className="profile-role">Voice-Powered Practice</div>
+                <div className="profile-name">Speak like you mean it</div>
+                <p className="home-card-description">
+                  Practice Java interviews with voice commands and real-time simulation.
+                </p>
 
-        <div className="home-info-card">
-          <div className="info-card-content">
-            <h2 className="info-title">
-              <FaStar className="me-2" /> Why Choose JavaSherpa?
-            </h2>
-            <p className="info-text">
-              We're building a platform for students who are ready to <strong>commit, contribute, and grow</strong> — 
-              not just add a line to their resume.
-            </p>
-            <p className="info-text">
-              <FaBullseye className="me-2" /> If you want to learn, lead, and be part of something impactful, this is your chance!
-            </p>
-            <div className="info-highlights">
-              <div className="highlight-item">
-                <FaMicrophone className="highlight-icon" />
-                <span>Voice-Powered Practice</span>
-              </div>
-              <div className="highlight-item">
-                <FaRobot className="highlight-icon" />
-                <span>AI-Powered Feedback</span>
-              </div>
-              <div className="highlight-item">
-                <FaBook className="highlight-icon" />
-                <span>Comprehensive Prep</span>
+                <div className="home-highlights">
+                  <div className="highlight-item">
+                    <FaMicrophone className="highlight-icon" />
+                    <span>Voice-Powered Practice</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <Link to="/register" className="btn btn-primary btn-apply">
-              <FaArrowRight className="me-2" /> Apply Now
-            </Link>
+
+            <div className="profile-card home-feature-card">
+              <div className="profile-photo home-feature-photo" aria-hidden="true">
+                <FaRobot />
+              </div>
+              <div className="profile-body">
+                <div className="profile-role">AI Interview Agent</div>
+                <div className="profile-name">Get actionable feedback</div>
+                <p className="home-card-description">
+                  Receive structured improvements so your answers get stronger every attempt.
+                </p>
+
+                <div className="home-highlights">
+                  <div className="highlight-item">
+                    <FaRobot className="highlight-icon" />
+                    <span>AI-Powered Feedback</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="profile-card home-feature-card">
+              <div className="profile-photo home-feature-photo" aria-hidden="true">
+                <FaBook />
+              </div>
+              <div className="profile-body">
+                <div className="profile-role">Comprehensive Prep</div>
+                <div className="profile-name">Learn patterns + best practices</div>
+                <p className="home-card-description">
+                  Access guided interview prep focused on Java concepts and communication clarity.
+                </p>
+
+                <div className="home-highlights">
+                  <div className="highlight-item">
+                    <FaBook className="highlight-icon" />
+                    <span>Comprehensive Prep</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="profile-card home-feature-card home-why-card">
+              <div className="profile-photo home-feature-photo" aria-hidden="true">
+                <FaStar />
+              </div>
+              <div className="profile-body home-why-body">
+                <div className="profile-role">Why JavaSherpa?</div>
+                <div className="profile-name">Commit. Contribute. Grow.</div>
+                <p className="home-card-description home-card-description--left">
+                  JavaSherpa is for students ready to practice with purpose—not just memorize answers.
+                </p>
+
+                <div className="home-cta">
+                  <Link to="/about" className="btn btn-primary home-cta-btn">
+                    <FaArrowRight className="me-2" /> About Us
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -111,13 +158,17 @@ const Home = () => {
               and real-world interview preparation.
             </p>
             <p className="footer-email">
-              <FaEnvelope className="me-2" /> support@javasherpa.com
+              <FaEnvelope className="me-2" /> javasherpa247@gmail.com
+            </p>
+            <p className="footer-email">
+              <FaMobileAlt className="me-2" /> +91 9359882005
             </p>
           </div>
           <div className="footer-section">
             <h4 className="footer-title">Quick Links</h4>
             <ul className="footer-links">
               <li><Link to="/">Home</Link></li>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/login">Login</Link></li>
               <li><Link to="/register">Register</Link></li>
             </ul>
@@ -125,14 +176,41 @@ const Home = () => {
           <div className="footer-section">
             <h4 className="footer-title">Connect With Us</h4>
             <div className="social-icons">
-              <a href="#" className="social-icon" aria-label="GitHub">
-                <FaMobileAlt />
+              <a
+                href="https://github.com/Yandnyavalkya"
+                className="social-icon"
+                aria-label="GitHub"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaGithub />
               </a>
-              <a href="#" className="social-icon" aria-label="LinkedIn">
-                <FaBriefcase />
+              <a
+                href="https://www.linkedin.com/in/yadnyavalkya-dakhore-119a3b258/"
+                className="social-icon"
+                aria-label="LinkedIn"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaLinkedin />
               </a>
-              <a href="#" className="social-icon" aria-label="Twitter">
+              <a
+                href="https://x.com/yadnya2004?t=8e1G3J9JYv90PaK6X50L6w&s=09"
+                className="social-icon"
+                aria-label="X (Twitter)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaTwitter />
+              </a>
+              <a
+                href="https://www.instagram.com/yadnya_2004?igsh=MXRyaWwyNGptM203Zg=="
+                className="social-icon"
+                aria-label="Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaInstagram />
               </a>
             </div>
             <Link to="/register" className="btn btn-primary btn-footer">

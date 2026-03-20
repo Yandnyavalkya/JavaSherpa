@@ -3,6 +3,7 @@ import { Button, Table, Pagination } from "react-bootstrap";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ApiService from "../../../../services/Api.service";
 import { toast } from "react-toastify";
+import { notifyApiError, notifySuccess, notifyWarning } from "../../../../utils/notify";
 import { bytesToMB } from "../../../../utils/helper";
 import DeleteConfirmModal from "../../../../components/confirmation.modal";
 import { FaBook } from "react-icons/fa";
@@ -28,7 +29,7 @@ const PdfManager = () => {
     let { data, error } = await ApiService.getAllFiles(searchParams.get("id"));
 
     if (error) {
-      toast.error(error.response.data.message);
+      notifyApiError(error, "Could not load uploaded materials.");
       return;
     }
 
@@ -42,6 +43,10 @@ const PdfManager = () => {
   };
 
   const uploadFile = async () => {
+    if (!selectedFiles) {
+      notifyWarning("Please select a PDF file to upload.");
+      return;
+    }
     setLoading(true);
 
     const formData = new FormData();
@@ -53,13 +58,14 @@ const PdfManager = () => {
     setLoading(false);
 
     if (error) {
-      toast.error(error.response.data.message);
+      notifyApiError(error, "Upload failed. Please try again.");
       return;
     }
 
     if (data) {
       fetchAllFiles();
       resetFileInput();
+      notifySuccess(data.message || "File uploaded successfully.");
     }
   };
 
@@ -85,12 +91,13 @@ const PdfManager = () => {
     let { data, error } = await ApiService.deleteFile(payload);
 
     if (error) {
-      toast.error(error.response.data.message);
+      notifyApiError(error, "Delete failed. Please try again.");
     }
 
     if (data) {
       setCurrentPage(1);
       fetchAllFiles();
+      notifySuccess(data.message || "File deleted successfully.");
     }
     setIsDeleting(false);
     setdeletetionItem(null);
