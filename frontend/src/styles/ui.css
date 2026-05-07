@@ -137,3 +137,27 @@ textarea::placeholder {
   z-index: 3000;
 }
 
+/* Settings modal select: readable options in dark mode */
+.dark-theme .settings-modal .modal-content {
+  background: var(--bg-modal);
+  color: var(--text-primary);
+  border: 1px solid var(--border-secondary);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark-theme .settings-modal .settings-select {
+  background: #0f1428;
+  color: #f5f7ff;
+  border-color: rgba(122, 150, 255, 0.35);
+}
+
+.dark-theme .settings-modal .settings-select option {
+  background: #0f1428;
+  color: #f5f7ff;
+}
+
+.light-theme .settings-modal .settings-select option {
+  background: #ffffff;
+  color: #111827;
+}
+

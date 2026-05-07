@@ -57,7 +57,7 @@ const SettingsModal = ({ show, onClose }) => {
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered>
+    <Modal show={show} onHide={onClose} centered dialogClassName="settings-modal">
       <Modal.Header closeButton>
         <Modal.Title>Settings</Modal.Title>
       </Modal.Header>
@@ -66,6 +66,7 @@ const SettingsModal = ({ show, onClose }) => {
           <Form.Group className="mb-3">
             <Form.Label>Display Theme</Form.Label>
             <Form.Select
+              className="settings-select"
               value={selectedTheme}
               onChange={(e) => setSelectedTheme(e.target.value)}
             >
@@ -79,6 +80,7 @@ const SettingsModal = ({ show, onClose }) => {
           <Form.Group>
             <Form.Label>AI Voice</Form.Label>
             <Form.Select
+              className="settings-select"
               value={voice}
               onChange={(e) => setVoice(e.target.value)}
             >
