@@ -103,6 +103,13 @@ const BotList = () => {
     navigate(`${url}?id=${id}&namespace_id=${namespace_id}`);
   };
 
+  const getDifficultyMeta = (difficulty) => {
+    const d = String(difficulty || "intermediate").toLowerCase().trim();
+    if (d === "beginner") return { label: "Beginner", className: "diff-beginner" };
+    if (d === "advanced") return { label: "Advanced", className: "diff-advanced" };
+    return { label: "Intermediate", className: "diff-intermediate" };
+  };
+
   return (
     <div className="bot-list-container container-fluid">
       <div className="row justify-content-center">
@@ -204,7 +211,16 @@ const BotList = () => {
                           <td>{indexOfFirstBot + index + 1}</td>
                           <td className="fw-semibold">{bot?.bot_name}</td>
                           <td>{bot?.description}</td>
-                          <td className="text-capitalize">{bot?.difficulty || "intermediate"}</td>
+                          <td>
+                            {(() => {
+                              const meta = getDifficultyMeta(bot?.difficulty);
+                              return (
+                                <span className={`difficulty-pill ${meta.className}`}>
+                                  {meta.label}
+                                </span>
+                              );
+                            })()}
+                          </td>
                           <td>{new Date(bot?.created_at["$date"]).toLocaleDateString()}</td>
                           <td>
                             <div className="d-flex gap-2">

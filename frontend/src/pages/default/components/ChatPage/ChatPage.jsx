@@ -85,26 +85,26 @@ const ChatPage = () => {
         }
         
         // Fallback to localStorage
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length) {
-            setMessages(parsed);
-            return;
-          }
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length) {
+          setMessages(parsed);
+          return;
         }
+      }
         
-        // If no stored history, start with a greeting
-        setMessages([
+      // If no stored history, start with a greeting
+      setMessages([
           { question: "", Ai_response: "Hello! I'm JavaShepa — your AI interviewer for today. To get started, please tell me which Java topic you'd like to practice.\n\nYou can choose from our predefined topics: Polymorphism, Inheritance, Collections, Memory, Generics, Exceptions, Threads, Oop, Fundamentals\n\nOr you can specify any Java topic you'd like to practice (e.g., 'classes', 'interfaces', 'streams', 'lambda expressions', etc.)." },
-        ]);
+      ]);
       } catch (error) {
         console.error('Error loading history:', error);
         // Fallback to greeting
-        setMessages([
+      setMessages([
           { question: "", Ai_response: "Hello! I'm JavaShepa — your AI interviewer for today. To get started, please tell me which Java topic you'd like to practice.\n\nYou can choose from our predefined topics: Polymorphism, Inheritance, Collections, Memory, Generics, Exceptions, Threads, Oop, Fundamentals\n\nOr you can specify any Java topic you'd like to practice (e.g., 'classes', 'interfaces', 'streams', 'lambda expressions', etc.)." },
-        ]);
-      }
+      ]);
+    }
     };
     
     loadHistory();
@@ -831,23 +831,23 @@ const ChatPage = () => {
                     <Logo size="small" showText={false} className="me-2" />
                     JavaSherpa Interview Session
                   </h5>
-                </div>
+              </div>
                 <div className="chat-header-buttons d-flex gap-2">
-                  <Button
-                    variant="outline-warning"
-                    className="rounded-pill px-3"
-                    onClick={clearChat}
-                    title="Clear chat and restart interview"
-                  >
+                <Button
+                  variant="outline-warning"
+                  className="rounded-pill px-3"
+                  onClick={clearChat}
+                  title="Clear chat and restart interview"
+                >
                     <FaRedo className="me-2" /> Restart Interview
-                  </Button>
-                  <Button
-                    variant="outline-info"
-                    className="rounded-pill px-3"
-                    onClick={downloadPdf}
-                    disabled={messages.length === 0}
-                    title="Download interview transcript as PDF"
-                  >
+                </Button>
+                <Button
+                  variant="outline-info"
+                  className="rounded-pill px-3"
+                  onClick={downloadPdf}
+                  disabled={messages.length === 0}
+                  title="Download interview transcript as PDF"
+                >
                     <FaDownload className="me-2" /> Download Transcript
                   </Button>
                   <Button
@@ -858,13 +858,13 @@ const ChatPage = () => {
                     title="Download detailed report with per-question scoring and analysis"
                   >
                     <FaDownload className="me-2" /> Download Detailed Report
-                  </Button>
-                  <Button
-                    variant={ttsEnabled ? "outline-success" : "outline-secondary"}
-                    className="rounded-pill px-3"
-                    onClick={() => setTtsEnabled((v) => !v)}
-                    title={ttsEnabled ? "Disable voice replies" : "Enable voice replies"}
-                  >
+                </Button>
+                <Button
+                  variant={ttsEnabled ? "outline-success" : "outline-secondary"}
+                  className="rounded-pill px-3"
+                  onClick={() => setTtsEnabled((v) => !v)}
+                  title={ttsEnabled ? "Disable voice replies" : "Enable voice replies"}
+                >
                     {ttsEnabled ? (
                       <>
                         <FaVolumeUp className="me-2" /> Voice On
@@ -874,14 +874,14 @@ const ChatPage = () => {
                         <FaVolumeMute className="me-2" /> Voice Off
                       </>
                     )}
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    className="rounded-pill px-4"
-                    onClick={() => navigate(-1)}
-                  >
-                    ← Back
-                  </Button>
+                </Button>
+                <Button
+                  variant="outline-secondary"
+                  className="rounded-pill px-4"
+                  onClick={() => navigate(-1)}
+                >
+                  ← Back
+                </Button>
                 </div>
               </div>
             </div>
@@ -1169,9 +1169,9 @@ const ChatPage = () => {
                             li: ({ children }) => <li className="markdown-list-item">{children}</li>,
                             blockquote: ({ children }) => <blockquote className="markdown-blockquote">{children}</blockquote>,
                             hr: () => <hr className="markdown-hr" />,
-                          }}
-                        >
-                          {formatResponse(msg.Ai_response)}
+                        }}
+                      >
+                        {formatResponse(msg.Ai_response)}
                         </ReactMarkdown>
                             {/* Check if interview is completed (last message after all questions) and show View Detailed Report button */}
                             {(() => {
