@@ -19,6 +19,111 @@ button,
 
 .card {
   border-radius: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Global polished surfaces across both themes */
+.form-control,
+.form-select,
+.input-group-text {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.form-control::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background: var(--bg-input-focus);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.table {
+  color: var(--text-secondary);
+}
+
+.table > :not(caption) > * > * {
+  background-color: transparent;
+  border-color: var(--border-secondary);
+}
+
+.table thead th {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
+}
+
+.light-theme .card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  box-shadow: var(--shadow-md);
+}
+
+.light-theme .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(124, 58, 237, 0.32);
+}
+
+.light-theme .btn-outline-secondary {
+  border-color: rgba(55, 65, 81, 0.25);
+  color: #374151;
+}
+
+.light-theme .btn-outline-secondary:hover {
+  background: rgba(55, 65, 81, 0.12);
+  color: #111827;
+}
+
+.light-theme .btn-primary {
+  background: linear-gradient(135deg, #5f76ea 0%, #8b5cf6 100%);
+  border: none;
+  box-shadow: 0 8px 18px rgba(95, 118, 234, 0.28);
+}
+
+.light-theme .btn-primary:hover {
+  background: linear-gradient(135deg, #4f67e3 0%, #7c3aed 100%);
+  box-shadow: 0 12px 24px rgba(95, 118, 234, 0.34);
+}
+
+.light-theme .table {
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+.light-theme .table thead th {
+  background: linear-gradient(180deg, rgba(102, 126, 234, 0.15) 0%, rgba(102, 126, 234, 0.07) 100%);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.22);
+}
+
+.light-theme .table tbody tr:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.light-theme .form-control,
+.light-theme .form-select {
+  border-color: rgba(102, 126, 234, 0.25);
+}
+
+.light-theme .form-control:focus,
+.light-theme .form-select:focus {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.2);
+}
+
+.light-theme h1,
+.light-theme h2,
+.light-theme h3,
+.light-theme h4,
+.light-theme h5 {
+  letter-spacing: 0.01em;
 }
 
 /* Better focus visibility (keyboard users) */

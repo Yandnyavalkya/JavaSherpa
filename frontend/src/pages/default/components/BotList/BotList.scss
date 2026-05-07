@@ -140,6 +140,28 @@
       }
     }
 
+    .form-select {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border-radius: 1rem;
+      border: 2px solid var(--border-primary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+
+      &:focus {
+        border-color: var(--accent-primary);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        background: var(--bg-input-focus);
+      }
+    }
+
+    .difficulty-select option {
+      background-color: #151823;
+      color: #f5f7ff;
+    }
+
     .form-label {
       font-weight: 600;
       color: var(--text-secondary);
@@ -260,6 +282,11 @@
   .card {
     box-shadow: var(--shadow-md);
     border-color: var(--border-secondary);
+  }
+
+  .card .difficulty-select option {
+    background-color: #ffffff;
+    color: #1f2937;
   }
 
   .pagination .page-link {

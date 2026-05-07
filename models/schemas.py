@@ -54,7 +54,8 @@ class KnowledgeBot(Document):
     user_id= ReferenceField(User)
     bot_name= StringField(required=True) 
     namespace_id= StringField(required=True)
-    description=StringField() 
+    description=StringField()
+    difficulty=StringField(default="intermediate")
     created_at= DateTimeField(default=datetime.utcnow)
     
 

@@ -9,7 +9,11 @@ import { FaMicrophone, FaTrash, FaUpload } from "react-icons/fa";
 
 const BotList = () => {
   const [bots, setBots] = useState([]);
-  const [formData, setFormData] = useState({ bot_name: "", description: "" });
+  const [formData, setFormData] = useState({
+    bot_name: "",
+    description: "",
+    difficulty: "intermediate",
+  });
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -28,9 +32,9 @@ const BotList = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { bot_name, description } = formData;
+    const { bot_name, description, difficulty } = formData;
 
-    if (!bot_name || !description) {
+    if (!bot_name || !description || !difficulty) {
       notifyWarning("Please fill in all fields to create an interview session.");
       setLoading(false);
 
@@ -50,7 +54,7 @@ const BotList = () => {
       notifySuccess(data.message || "Session created successfully.");
     }
 
-    setFormData({ bot_name: "", description: "" });
+    setFormData({ bot_name: "", description: "", difficulty: "intermediate" });
   };
 
   const fetchAllChatBots = async (e) => {
@@ -136,6 +140,20 @@ const BotList = () => {
                 ></textarea>
               </div>
 
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Difficulty Level</label>
+                <select
+                  name="difficulty"
+                  className="form-select form-select-lg difficulty-select"
+                  value={formData.difficulty}
+                  onChange={handleChange}
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+
               {error && <div className="alert alert-danger py-2">{error}</div>}
 
               <button
@@ -175,6 +193,7 @@ const BotList = () => {
                         <th>#</th>
                         <th>Session Name</th>
                         <th>Description</th>
+                        <th>Difficulty</th>
                         <th>Created At</th>
                         <th>Action</th>
                       </tr>
@@ -185,6 +204,7 @@ const BotList = () => {
                           <td>{indexOfFirstBot + index + 1}</td>
                           <td className="fw-semibold">{bot?.bot_name}</td>
                           <td>{bot?.description}</td>
+                          <td className="text-capitalize">{bot?.difficulty || "intermediate"}</td>
                           <td>{new Date(bot?.created_at["$date"]).toLocaleDateString()}</td>
                           <td>
                             <div className="d-flex gap-2">

@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel ,Field
-from typing import List
+from typing import List, Optional
 
 class DeleteFilesDTO(BaseModel):
     namespace_id: str 
@@ -14,7 +14,8 @@ class DeleteFileDTO(BaseModel):
 
 class CreateBot(BaseModel): 
     bot_name:str   
-    description:str 
+    description:str
+    difficulty: str = "intermediate"
 
 class conversation(BaseModel): 
     question: str = ""  # Allow empty string
@@ -54,14 +55,14 @@ class UserRegister(BaseModel):
     password:str  
     name:str  
     phone_number:int     
-    company_name:str   
+    company_name: Optional[str] = None
        
 class UpdateUser(BaseModel):  
     _id:str
     email:str  
     name:str  
     phone_number:int     
-    company_name:str 
+    company_name: Optional[str] = None
 
 
 class ResetPassword(BaseModel):  

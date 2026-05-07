@@ -401,16 +401,53 @@ const ChatPage = () => {
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
 
-    const isMale = preferred === "male";
-    const match = voices.find((v) => {
-      const name = `${v.name} ${v.voiceURI}`.toLowerCase();
-      // Heuristic keywords for male/female
-      const maleHints = ["male", "daniel", "george", "guy", "david", "microsoft arthur", "microsoft guy"];
-      const femaleHints = ["female", "samantha", "victoria", "karen", "zira", "microsoft aria", "jenny", "linda"];
-      const hints = isMale ? maleHints : femaleHints;
-      return hints.some((h) => name.includes(h));
-    });
-    return match || voices[0];
+    const isMale = preferred === "male" || preferred === "male2";
+    const isVariant2 = preferred === "male2" || preferred === "female2";
+    const prefersIndian = !isVariant2; // male/female => Indian profile, male2/female2 => global profile
+    const genderHints = isMale
+      ? ["male", "daniel", "george", "guy", "david", "arthur", "prabhat", "rahul", "ravi", "ajit"]
+      : ["female", "samantha", "victoria", "karen", "zira", "aria", "jenny", "linda", "heera", "priya", "swara"];
+    const variant2Hints = isMale
+      ? ["arthur", "david", "daniel", "george", "guy", "microsoft", "google", "neural"]
+      : ["aria", "jenny", "samantha", "victoria", "zira", "microsoft", "google", "neural"];
+
+    const scoreVoice = (voice) => {
+      const name = `${voice.name || ""} ${voice.voiceURI || ""}`.toLowerCase();
+      const lang = (voice.lang || "").toLowerCase();
+      let score = 0;
+
+      if (prefersIndian) {
+        // Prefer Indian English accent for male/female
+        if (lang === "en-in") score += 120;
+        else if (lang.startsWith("en-in")) score += 100;
+        else if (name.includes("india") || name.includes("indian")) score += 90;
+        else if (lang.startsWith("en-gb")) score += 30;
+        else if (lang.startsWith("en-")) score += 20;
+      } else {
+        // Prefer global English voices for male2/female2 (avoid Indian accent)
+        if (lang.startsWith("en-us")) score += 110;
+        else if (lang.startsWith("en-gb")) score += 95;
+        else if (lang.startsWith("en-au") || lang.startsWith("en-ca")) score += 80;
+        else if (lang.startsWith("en-")) score += 60;
+
+        if (lang.startsWith("en-in") || name.includes("india") || name.includes("indian")) {
+          score -= 80;
+        }
+      }
+
+      // Prefer natural / neural voices when available
+      if (name.includes("neural") || name.includes("natural") || name.includes("enhanced")) score += 25;
+      if (voice.localService) score += 8;
+
+      // Gender preference hints
+      if (genderHints.some((h) => name.includes(h))) score += 40;
+      if (isVariant2 && variant2Hints.some((h) => name.includes(h))) score += 22;
+
+      return score;
+    };
+
+    const sorted = [...voices].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+    return sorted[0] || voices[0];
   };
 
   // Clean text for TTS - remove markdown, formatting, equals signs, and blank spaces
@@ -486,15 +523,36 @@ const ChatPage = () => {
     lastSpokenChunkRef.current = cleanedText;
 
     const voice = getPreferredVoice();
+    const selectedVoice = voice || null;
+    const selectedLang = (selectedVoice?.lang || "").toLowerCase();
+    const selectedName = `${selectedVoice?.name || ""} ${selectedVoice?.voiceURI || ""}`.toLowerCase();
+    const selectedVoiceKey = ((getVariable("app_settings") || {}).voice || "female").toLowerCase();
+    const isMale = selectedVoiceKey === "male" || selectedVoiceKey === "male2";
+    const isVariant2 = selectedVoiceKey === "male2" || selectedVoiceKey === "female2";
+    const isIndianEnglish =
+      selectedLang.startsWith("en-in") ||
+      selectedName.includes("india") ||
+      selectedName.includes("indian");
 
     // Split into manageable chunks to avoid very long utterances
-    const sentences = cleanedText.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const sentences = cleanedText
+      .split(/(?<=[.!?])\s+|,\s+/)
+      .flatMap((chunk) => {
+        if (chunk.length <= 220) return [chunk];
+        return chunk.match(/.{1,220}(\s|$)/g) || [chunk];
+      })
+      .map((s) => s.trim())
+      .filter(Boolean);
+
     sentences.forEach((segment) => {
       if (segment.trim().length === 0) return;
       const utter = new SpeechSynthesisUtterance(segment.trim());
-      utter.rate = 1.0;
-      utter.pitch = 1.0;
-      if (voice) utter.voice = voice;
+      // Slightly slower + softer prosody sounds more human than robotic
+      utter.rate = isVariant2 ? 0.95 : (isIndianEnglish ? 0.9 : 0.93);
+      utter.pitch = isMale ? (isVariant2 ? 0.92 : 0.95) : (isVariant2 ? 1.0 : 1.05);
+      utter.volume = 1.0;
+      utter.lang = selectedVoice?.lang || (isIndianEnglish ? "en-IN" : "en-GB");
+      if (selectedVoice) utter.voice = selectedVoice;
       utter.onstart = () => (speakingRef.current = true);
       utter.onend = () => (speakingRef.current = false);
       window.speechSynthesis.speak(utter);
@@ -613,6 +671,45 @@ const ChatPage = () => {
 
   const formatResponse = (text) => {
     let formatted = text;
+    const knownLangs = [
+      "java",
+      "javascript",
+      "js",
+      "python",
+      "py",
+      "html",
+      "css",
+      "json",
+      "xml",
+      "sql",
+      "bash",
+      "sh",
+      "yaml",
+      "yml",
+      "md",
+      "markdown",
+      "text",
+      "plain",
+    ];
+
+    // Normalize malformed fenced code headers like:
+    // ```javapublic class X
+    // ```java public class X
+    // ```javaVehicle
+    // into:
+    // ```java
+    // public class X
+    formatted = formatted.replace(/```([^\n`]*)/g, (match, header) => {
+      const normalizedHeader = (header || "").trim();
+      if (!normalizedHeader) return "```";
+
+      const lower = normalizedHeader.toLowerCase();
+      const lang = knownLangs.find((l) => lower === l || lower.startsWith(l));
+      if (!lang) return match;
+
+      const remainder = normalizedHeader.slice(lang.length).trimStart();
+      return remainder ? `\`\`\`${lang}\n${remainder}` : `\`\`\`${lang}`;
+    });
     
     // First, protect code blocks from modification by temporarily replacing them
     const codeBlockPlaceholders = [];
@@ -624,8 +721,16 @@ const ChatPage = () => {
       // Fix common malformed patterns before storing
       let fixedMatch = match;
       
-      // Fix: ```java followed immediately by text (no newline) - like ```javae or ```javaVehicle
-      fixedMatch = fixedMatch.replace(/```(\w+)([A-Za-z])/g, "```$1\n$2");
+      // Fix malformed fenced code header inside protected blocks
+      fixedMatch = fixedMatch.replace(/```([^\n`]*)/g, (m, header) => {
+        const normalizedHeader = (header || "").trim();
+        if (!normalizedHeader) return "```";
+        const lower = normalizedHeader.toLowerCase();
+        const lang = knownLangs.find((l) => lower === l || lower.startsWith(l));
+        if (!lang) return m;
+        const remainder = normalizedHeader.slice(lang.length).trimStart();
+        return remainder ? `\`\`\`${lang}\n${remainder}` : `\`\`\`${lang}`;
+      });
       
       // Fix: Remove language identifier text that appears in code (like JAVAVEHIC)
       // Pattern: ```java\nJAVAVEHIC\n1\ne vehicle...
@@ -806,7 +911,30 @@ const ChatPage = () => {
                             pre: ({ children, ...props }) => {
                               const codeProps = children?.props || {};
                               const match = /language-(\w+)/.exec(codeProps.className || "");
-                              const detectedLang = match?.[1]?.toLowerCase() || null;
+                              const rawLang = match?.[1]?.toLowerCase() || null;
+                              const canonicalLangs = [
+                                "java",
+                                "javascript",
+                                "js",
+                                "python",
+                                "py",
+                                "html",
+                                "css",
+                                "json",
+                                "xml",
+                                "sql",
+                                "bash",
+                                "sh",
+                                "yaml",
+                                "yml",
+                                "md",
+                                "markdown",
+                                "text",
+                                "plain",
+                              ];
+                              let detectedLang = rawLang
+                                ? canonicalLangs.find((lang) => rawLang === lang || rawLang.startsWith(lang)) || rawLang
+                                : null;
 
                               // Extract code string robustly (ReactMarkdown sometimes provides nested nodes/arrays)
                               const extractNodeText = (node) => {
@@ -824,27 +952,18 @@ const ChatPage = () => {
                               // Remove trailing newline (helps avoid extra blank line at bottom)
                               codeString = codeString.replace(/\n$/, "");
 
+                              // Repair common leakage where java token is split into tiny lines (e.g., "v", "a")
+                              codeString = codeString.replace(/^\s*([a-z])\s*\n\s*([a-z])\s*\n/i, "$1$2\n");
+                              codeString = codeString.replace(/^\s*([a-z])\s*\n/i, "$1");
+
+                              // Fallback language inference from content when className is malformed (e.g., "ja")
+                              const javaHints = /(public\s+class|private\s+\w+|protected\s+\w+|static\s+\w+|System\.out\.println|implements\s+\w+|extends\s+\w+)/i;
+                              if ((!detectedLang || detectedLang.length < 3 || detectedLang === "ja") && javaHints.test(codeString)) {
+                                detectedLang = "java";
+                              }
+
                               if (codeString) {
-                                const knownLangs = [
-                                  "java",
-                                  "javascript",
-                                  "js",
-                                  "python",
-                                  "py",
-                                  "html",
-                                  "css",
-                                  "json",
-                                  "xml",
-                                  "sql",
-                                  "bash",
-                                  "sh",
-                                  "yaml",
-                                  "yml",
-                                  "md",
-                                  "markdown",
-                                  "text",
-                                  "plain",
-                                ];
+                                const knownLangs = canonicalLangs;
 
                                 // Remove leaked "language/title" text lines that sometimes arrive above the real code.
                                 const lines = codeString.split("\n");
@@ -869,6 +988,11 @@ const ChatPage = () => {
                                 }
 
                                 codeString = lines.join("\n");
+
+                                // Remove leading leaked all-caps token + optional line number from first line.
+                                codeString = codeString.replace(/^\s*[A-Z]{3,}\s*(?:\n|$)/, "");
+                                // Remove tiny leaked pseudo-language fragments from top lines (JA, J, A, v, a, etc.)
+                                codeString = codeString.replace(/^(?:\s*[A-Za-z]{1,2}\s*\n){1,3}(?=\s*(?:public|class|interface|enum|@|\w+\s+\w+\s*\())/i, "");
 
                                 // Remove leading line number prefix from the first line only.
                                 // (Keeps inner line numbers intact, if any.)
@@ -968,7 +1092,7 @@ const ChatPage = () => {
                               }
                               
                               if (codeString) {
-                                const languageLabel = match?.[1] || detectedLang || "code";
+                                const languageLabel = detectedLang || "code";
                                 return (
                                   <div className="code-block-wrapper">
                                     <div className="code-block-header">

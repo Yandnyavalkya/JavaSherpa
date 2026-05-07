@@ -10,6 +10,7 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
+from models.schemas import KnowledgeBot, KnowledgeBotFiles
 
 load_dotenv()
 
@@ -111,6 +112,7 @@ class PineconeService:
         self.score = {}              # namespace_id -> float
         self.waiting_for_followup = {}  # namespace_id -> bool (True if waiting for followup answer)
         self.selected_topic = {}      # namespace_id -> str (selected topic name)
+        self.selected_difficulty = {}  # namespace_id -> str (beginner|intermediate|advanced)
         self.question_scores = {}    # namespace_id -> dict {question_index: score} for detailed report
         self.interview_completed = {}  # namespace_id -> bool (True when interview is complete)
         self.asked_questions_by_topic = {}  # topic -> set of asked questions to avoid repetition
@@ -160,12 +162,116 @@ class PineconeService:
                 return True
         return False
 
+    def _get_skill_level(self, percentage: float) -> str:
+        if percentage >= 80:
+            return "Advanced"
+        if percentage >= 55:
+            return "Intermediate"
+        return "Beginner"
+
+    def _build_final_summary(self, namespace_id: str, include_report_note: bool = True) -> str:
+        session_qs = self.session_questions.get(namespace_id, [])
+        total_questions = len(session_qs)
+        total_score = self.score.get(namespace_id, 0)
+        percentage = (total_score / total_questions * 100) if total_questions else 0
+        skill_level = self._get_skill_level(percentage)
+
+        # Build deterministic question-wise lines
+        question_lines = []
+        for idx, q in enumerate(session_qs):
+            q_score = self.question_scores.get(namespace_id, {}).get(idx, 0)
+            score_display = "Excellent" if q_score >= 0.75 else "Partial" if q_score >= 0.5 else "Needs work"
+            question_lines.append(f"- **Q{idx + 1}:** {q}")
+            question_lines.append(f"  - Score: {q_score:.1f}/1.0 ({score_display})")
+
+        # Strengths / improvement areas from scored questions
+        scored = [(idx, self.question_scores.get(namespace_id, {}).get(idx, 0)) for idx in range(total_questions)]
+        top_two = sorted(scored, key=lambda x: x[1], reverse=True)[:2]
+        bottom_two = sorted(scored, key=lambda x: x[1])[:2]
+
+        strengths = []
+        for idx, score in top_two:
+            if score >= 0.75 and idx < len(session_qs):
+                strengths.append(f"- You answered **Q{idx + 1}** strongly and demonstrated clear understanding.")
+        if not strengths:
+            strengths = [
+                "- You stayed engaged throughout the interview and attempted all questions.",
+                "- You showed willingness to reason through problems instead of skipping them.",
+            ]
+
+        improvements = []
+        for idx, score in bottom_two:
+            if score < 0.75 and idx < len(session_qs):
+                improvements.append(f"- Revisit the concept behind **Q{idx + 1}** and practice explaining it with examples.")
+        if not improvements:
+            improvements = ["- Keep refining answer depth with concise definitions plus practical examples."]
+
+        if percentage >= 80:
+            recommendations = [
+                "- Practice more scenario-based and edge-case Java questions to sharpen advanced readiness.",
+                "- Keep answers structured as: definition, example, and trade-off discussion.",
+            ]
+            closing = "Great work. You are demonstrating strong interview readiness. Keep practicing with tougher real-world scenarios."
+        elif percentage >= 55:
+            recommendations = [
+                "- Focus on weak topics first and revise core Java concepts for each one.",
+                "- Use 2-3 line code snippets while answering to improve clarity and confidence.",
+            ]
+            closing = "Good progress. You are building solid fundamentals, and with targeted revision you can quickly reach the next level."
+        else:
+            recommendations = [
+                "- Start with Java fundamentals and OOP basics before advanced topics.",
+                "- Practice answering each topic with one definition and one simple code example.",
+            ]
+            closing = "You are at the beginning of your interview journey, and that is completely okay. Stay consistent and you will improve steadily."
+
+        summary_parts = [
+            "**Interview Session Summary**",
+            "",
+            f"**Overall Score:** {total_score}/{total_questions} ({percentage:.1f}%)",
+            "",
+            "**Question-wise Report:**",
+            "",
+            "\n".join(question_lines) if question_lines else "- No questions were recorded for this session.",
+            "",
+            "**Performance Analysis:**",
+            "",
+            f"- Skill Level: **{skill_level}**",
+            f"- Difficulty Selected: **{(self.selected_difficulty.get(namespace_id) or 'intermediate').capitalize()}**",
+            "",
+            "**Strengths:**",
+            *strengths,
+            "",
+            "**Areas for Improvement:**",
+            *improvements,
+            "",
+            "**Recommendations:**",
+            *recommendations,
+            "",
+            "**Closing Remark:**",
+            "",
+            closing,
+        ]
+
+        if include_report_note:
+            summary_parts.extend(
+                [
+                    "",
+                    "---",
+                    "",
+                    "**Your detailed report is available for download and has been sent to your email.**",
+                ]
+            )
+
+        return "\n".join(summary_parts).strip()
+
     async def reset_session(self, namespace_id: str):
         self.session_questions[namespace_id] = []
         self.current_index[namespace_id] = 0
         self.score[namespace_id] = 0
         self.waiting_for_followup[namespace_id] = False
         self.selected_topic[namespace_id] = None
+        self.selected_difficulty[namespace_id] = None
         self.question_scores[namespace_id] = {}
         self.interview_completed[namespace_id] = False
         if namespace_id in self.interview_summary:
@@ -278,6 +384,8 @@ class PineconeService:
             self.waiting_for_followup[namespace_id] = False
         if namespace_id not in self.selected_topic:
             self.selected_topic[namespace_id] = None
+        if namespace_id not in self.selected_difficulty:
+            self.selected_difficulty[namespace_id] = None
         if namespace_id not in self.session_questions:
             self.session_questions[namespace_id] = []
         if namespace_id not in self.question_scores:
@@ -299,6 +407,26 @@ class PineconeService:
             text_key=os.getenv('PINECONE_TEXT_FIELD'),
             namespace=namespace_id
         )
+
+        # If session has uploaded references, prioritize document-grounded question generation
+        has_reference_docs = KnowledgeBotFiles.objects(namespace_id=namespace_id).count() > 0
+
+        # Resolve session difficulty (from DB-backed session settings)
+        difficulty = self.selected_difficulty.get(namespace_id)
+        if difficulty is None:
+            bot = KnowledgeBot.objects(namespace_id=namespace_id).first()
+            difficulty = (bot.difficulty if bot and getattr(bot, "difficulty", None) else "intermediate")
+            difficulty = str(difficulty).lower().strip()
+            if difficulty not in ("beginner", "intermediate", "advanced"):
+                difficulty = "intermediate"
+            self.selected_difficulty[namespace_id] = difficulty
+
+        difficulty_hint_map = {
+            "beginner": "Beginner level: ask core, foundational concepts with straightforward wording and basic examples.",
+            "intermediate": "Intermediate level: ask practical application questions that require conceptual depth and reasoning.",
+            "advanced": "Advanced level: ask challenging scenario-based questions, edge-cases, performance trade-offs, and design decisions.",
+        }
+        difficulty_hint = difficulty_hint_map.get(difficulty, difficulty_hint_map["intermediate"])
 
         # Check if topic has been selected
         topic = self.selected_topic.get(namespace_id)
@@ -358,12 +486,55 @@ class PineconeService:
             topic_display = user_topic.capitalize()
             
             # Generate questions dynamically using LLM for all topics
-            question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {user_topic}
+            if has_reference_docs:
+                try:
+                    retrieved_docs = vectorstore.similarity_search(user_topic, k=8)
+                except Exception:
+                    retrieved_docs = []
+
+                reference_context = "\n\n".join([
+                    (d.page_content or "").strip()[:1200] for d in retrieved_docs if (d.page_content or "").strip()
+                ])[:7000]
+                if reference_context:
+                    question_generation_prompt = f"""Generate 5 unique Java interview questions for topic: {user_topic}
+
+Use the reference context below as your primary source.
+
+Reference Context:
+{reference_context}
+
+Requirements:
+- Each question should be focused on {user_topic} in Java
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
+- Ground questions in concepts/examples mentioned in the documents
+- Keep questions practical and interview-appropriate
+- Format: One question per line, no numbering, no bullet points
+- Each question should end with a question mark
+- Generate exactly 5 unique questions
+"""
+                else:
+                    question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {user_topic}
 
 Requirements:
 - Each question should be focused on {user_topic} in Java
 - Questions should be appropriate for a Java interview
-- Questions should range from basic to intermediate level
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
+- Make questions specific, practical, and different from common textbook questions
+- Format: One question per line, no numbering, no bullet points
+- Each question should be a complete sentence ending with a question mark
+- Avoid repeating similar questions
+
+Generate exactly 5 unique questions about {user_topic}:"""
+            else:
+                question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {user_topic}
+
+Requirements:
+- Each question should be focused on {user_topic} in Java
+- Questions should be appropriate for a Java interview
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
 - Make questions specific, practical, and different from common textbook questions
 - Format: One question per line, no numbering, no bullet points
 - Each question should be a complete sentence ending with a question mark
@@ -394,7 +565,7 @@ Generate exactly 5 unique questions about {user_topic}:"""
             
             # If LLM didn't generate enough questions, generate more
             if len(generated_questions) < 5:
-                additional_prompt = f"""Generate {5 - len(generated_questions)} more unique Java interview questions about {user_topic}. Each question should be different from the previous ones. Format: One question per line, no numbering."""
+                additional_prompt = f"""Generate {5 - len(generated_questions)} more unique Java interview questions about {user_topic} at {difficulty} level. Each question should be different from the previous ones. Format: One question per line, no numbering."""
                 additional_text = "".join([chunk for chunk in chain.stream(additional_prompt)])
                 additional_lines = additional_text.split('\n')
                 for line in additional_lines:
@@ -423,7 +594,10 @@ Generate exactly 5 unique questions about {user_topic}:"""
             self.question_scores[namespace_id] = {}
             
             first_q = self.session_questions[namespace_id][0]
-            yield f"Great! I'll conduct the interview on **{topic_display}**. Let's begin!\n\nQuestion 1: {first_q}"
+            if has_reference_docs and reference_context:
+                yield f"Great! I'll conduct the interview on **{topic_display}** at **{difficulty.capitalize()}** difficulty using your uploaded reference material. Let's begin!\n\nQuestion 1: {first_q}"
+            else:
+                yield f"Great! I'll conduct the interview on **{topic_display}** at **{difficulty.capitalize()}** difficulty. Let's begin!\n\nQuestion 1: {first_q}"
             return
         
         # Detect greeting after topic is selected (restart interview)
@@ -433,12 +607,55 @@ Generate exactly 5 unique questions about {user_topic}:"""
             topic_display = topic.capitalize()
             
             # Generate questions dynamically using LLM
-            question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {topic}
+            if has_reference_docs:
+                try:
+                    retrieved_docs = vectorstore.similarity_search(topic, k=8)
+                except Exception:
+                    retrieved_docs = []
+
+                reference_context = "\n\n".join([
+                    (d.page_content or "").strip()[:1200] for d in retrieved_docs if (d.page_content or "").strip()
+                ])[:7000]
+                if reference_context:
+                    question_generation_prompt = f"""Generate 5 unique Java interview questions for topic: {topic}
+
+Use the reference context below as your primary source.
+
+Reference Context:
+{reference_context}
+
+Requirements:
+- Each question should be focused on {topic} in Java
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
+- Ground questions in concepts/examples mentioned in the documents
+- Keep questions practical and interview-appropriate
+- Format: One question per line, no numbering, no bullet points
+- Each question should end with a question mark
+- Generate exactly 5 unique questions
+"""
+                else:
+                    question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {topic}
 
 Requirements:
 - Each question should be focused on {topic} in Java
 - Questions should be appropriate for a Java interview
-- Questions should range from basic to intermediate level
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
+- Make questions specific, practical, and different from common textbook questions
+- Format: One question per line, no numbering, no bullet points
+- Each question should be a complete sentence ending with a question mark
+- Avoid repeating similar questions
+
+Generate exactly 5 unique questions about {topic}:"""
+            else:
+                question_generation_prompt = f"""Generate 5 unique Java interview questions specifically about the topic: {topic}
+
+Requirements:
+- Each question should be focused on {topic} in Java
+- Questions should be appropriate for a Java interview
+- Difficulty level to enforce: {difficulty.upper()}
+- {difficulty_hint}
 - Make questions specific, practical, and different from common textbook questions
 - Format: One question per line, no numbering, no bullet points
 - Each question should be a complete sentence ending with a question mark
@@ -465,7 +682,7 @@ Generate exactly 5 unique questions about {topic}:"""
             
             # If LLM didn't generate enough questions, generate more
             if len(generated_questions) < 5:
-                additional_prompt = f"""Generate {5 - len(generated_questions)} more unique Java interview questions about {topic}. Each question should be different from the previous ones. Format: One question per line, no numbering."""
+                additional_prompt = f"""Generate {5 - len(generated_questions)} more unique Java interview questions about {topic} at {difficulty} level. Each question should be different from the previous ones. Format: One question per line, no numbering."""
                 additional_text = "".join([chunk for chunk in chain.stream(additional_prompt)])
                 additional_lines = additional_text.split('\n')
                 for line in additional_lines:
@@ -492,7 +709,10 @@ Generate exactly 5 unique questions about {topic}:"""
             self.question_scores[namespace_id] = {}
             
             first_q = self.session_questions[namespace_id][0]
-            yield f"Hello! Let's continue with **{topic_display}**.\n\nQuestion 1: {first_q}"
+            if has_reference_docs and reference_context:
+                yield f"Hello! Let's continue with **{topic_display}** at **{difficulty.capitalize()}** difficulty using your uploaded reference material.\n\nQuestion 1: {first_q}"
+            else:
+                yield f"Hello! Let's continue with **{topic_display}** at **{difficulty.capitalize()}** difficulty.\n\nQuestion 1: {first_q}"
             return
 
         # Interview in progress
@@ -546,76 +766,7 @@ FORMATTING REQUIREMENTS:
                     self.current_index[namespace_id] += 1
                     yield f"{feedback}\n\n===== Next Question ({current_idx+1}) =====\n{next_q}"
                 else:
-                    # Generate brief chat message with score and remark
-                    # Build question-wise breakdown
-                    question_breakdown = []
-                    for idx, q in enumerate(session_qs):
-                        q_score = self.question_scores.get(namespace_id, {}).get(idx, 0)
-                        score_display = "✓" if q_score >= 0.75 else "~" if q_score >= 0.5 else "✗"
-                        question_breakdown.append(f"**Q{idx + 1}:** {q} - **Score: {q_score:.1f}/1.0** {score_display}")
-                    
-                    questions_text = "\n\n".join(question_breakdown)
-                    
-                    # Generate comprehensive summary for chat display
-                    final_prompt = f"""
-You are JavaShepa, a friendly and encouraging AI Java interviewer. Generate a comprehensive final interview summary for the student.
-
-Interview Performance:
-- Total Score: {self.score[namespace_id]}/{len(session_qs)}
-- Percentage: {(self.score[namespace_id]/len(session_qs)*100):.1f}%
-- Number of Questions: {len(session_qs)}
-
-Question-wise Performance (for reference):
-{questions_text}
-
-Guidelines:
-- Speak directly to the student using "you" and "your" - be warm and conversational
-- Provide a comprehensive summary with clear sections
-- Include the question-wise report showing each question and its score
-- Focus on overall performance, strengths, and areas for improvement
-- Be encouraging and constructive
-
-FORMATTING REQUIREMENTS (CRITICAL):
-- Use proper markdown formatting with double newlines (\\n\\n) between sections
-- Use **bold** for section headers and important information
-- Use line breaks to separate each section clearly
-- Format the question-wise report as a clear, readable list
-- Keep paragraphs concise and well-spaced
-- Add blank lines before and after code blocks if any
-
-Structure your response EXACTLY like this:
-
-**Interview Session Summary**
-
-**Overall Score:** {self.score[namespace_id]}/{len(session_qs)} ({(self.score[namespace_id]/len(session_qs)*100):.1f}%)
-
-**Question-wise Report:**
-
-{questions_text}
-
-**Performance Analysis:**
-
-**Strengths:**
-- (List 2-3 key strengths based on their performance)
-
-**Areas for Improvement:**
-- (List 2-3 areas that need improvement)
-
-**Skill Level:** (Beginner / Intermediate / Advanced based on the score)
-
-**Recommendations:**
-- (Provide 2-3 specific, actionable suggestions for improvement)
-
-**Closing Remark:**
-
-(Write 2-3 sentences of encouragement and motivation to keep learning)
-
----
-
-**Your detailed report is available for download and has been sent to your email.**
-                    """
-                    chain = llm | StrOutputParser()
-                    summary = "".join([chunk for chunk in chain.stream(final_prompt)])
+                    summary = self._build_final_summary(namespace_id, include_report_note=True)
                     
                     # Store full summary separately for PDF
                     self.interview_summary[namespace_id] = summary
@@ -790,75 +941,7 @@ Be strict: only give 1.0 for answers that fully and accurately address the speci
                     self.current_index[namespace_id] += 1
                     yield f"{feedback}\n\n===== Next Question ({current_idx+1}) =====\n{next_q}"
                 else:
-                    # Build question-wise breakdown
-                    question_breakdown = []
-                    for idx, q in enumerate(session_qs):
-                        q_score = self.question_scores.get(namespace_id, {}).get(idx, 0)
-                        score_display = "✓" if q_score >= 0.75 else "~" if q_score >= 0.5 else "✗"
-                        question_breakdown.append(f"**Q{idx + 1}:** {q} - **Score: {q_score:.1f}/1.0** {score_display}")
-                    
-                    questions_text = "\n\n".join(question_breakdown)
-                    
-                    # Generate comprehensive summary for chat display
-                    final_prompt = f"""
-You are JavaShepa, a friendly and encouraging AI Java interviewer. Generate a comprehensive final interview summary for the student.
-
-Interview Performance:
-- Total Score: {self.score[namespace_id]}/{len(session_qs)}
-- Percentage: {(self.score[namespace_id]/len(session_qs)*100):.1f}%
-- Number of Questions: {len(session_qs)}
-
-Question-wise Performance (for reference):
-{questions_text}
-
-Guidelines:
-- Speak directly to the student using "you" and "your" - be warm and conversational
-- Provide a comprehensive summary with clear sections
-- Include the question-wise report showing each question and its score
-- Focus on overall performance, strengths, and areas for improvement
-- Be encouraging and constructive
-
-FORMATTING REQUIREMENTS (CRITICAL):
-- Use proper markdown formatting with double newlines (\\n\\n) between sections
-- Use **bold** for section headers and important information
-- Use line breaks to separate each section clearly
-- Format the question-wise report as a clear, readable list
-- Keep paragraphs concise and well-spaced
-- Add blank lines before and after code blocks if any
-
-Structure your response EXACTLY like this:
-
-**Interview Session Summary**
-
-**Overall Score:** {self.score[namespace_id]}/{len(session_qs)} ({(self.score[namespace_id]/len(session_qs)*100):.1f}%)
-
-**Question-wise Report:**
-
-{questions_text}
-
-**Performance Analysis:**
-
-**Strengths:**
-- (List 2-3 key strengths based on their performance)
-
-**Areas for Improvement:**
-- (List 2-3 areas that need improvement)
-
-**Skill Level:** (Beginner / Intermediate / Advanced based on the score)
-
-**Recommendations:**
-- (Provide 2-3 specific, actionable suggestions for improvement)
-
-**Closing Remark:**
-
-(Write 2-3 sentences of encouragement and motivation to keep learning)
-
----
-
-**Your detailed report is available for download and has been sent to your email.**
-                    """
-                    chain = llm | StrOutputParser()
-                    summary = "".join([chunk for chunk in chain.stream(final_prompt)])
+                    summary = self._build_final_summary(namespace_id, include_report_note=True)
 
                     # Store full summary separately for PDF
                     self.interview_summary[namespace_id] = summary

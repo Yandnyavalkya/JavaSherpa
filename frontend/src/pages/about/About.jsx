@@ -23,6 +23,13 @@ import gauravImg from "../../assets/about/gaurav.png";
 import maheshImg from "../../assets/about/mahesh.png";
 
 const ProfileCard = ({ photo, name, designation, email, phone, socials = {} }) => {
+  const socialItems = [
+    { key: "linkedin", icon: <FaLinkedin />, label: "LinkedIn" },
+    { key: "github", icon: <FaGithub />, label: "GitHub" },
+    { key: "twitter", icon: <FaTwitter />, label: "X" },
+    { key: "instagram", icon: <FaInstagram />, label: "Instagram" },
+  ];
+
   return (
     <div className="profile-card">
       <div className="profile-photo">
@@ -51,50 +58,34 @@ const ProfileCard = ({ photo, name, designation, email, phone, socials = {} }) =
         )}
 
         <div className="profile-socials">
-          {socials.linkedin && (
-            <a
-              href={socials.linkedin}
-              className="social"
-              aria-label={`${name} LinkedIn`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaLinkedin />
-            </a>
-          )}
-          {socials.github && (
-            <a
-              href={socials.github}
-              className="social"
-              aria-label={`${name} GitHub`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaGithub />
-            </a>
-          )}
-          {socials.twitter && (
-            <a
-              href={socials.twitter}
-              className="social"
-              aria-label={`${name} X`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaTwitter />
-            </a>
-          )}
-          {socials.instagram && (
-            <a
-              href={socials.instagram}
-              className="social"
-              aria-label={`${name} Instagram`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaInstagram />
-            </a>
-          )}
+          {socialItems.map(({ key, icon, label }) => {
+            const url = socials[key];
+            if (url) {
+              return (
+                <a
+                  key={key}
+                  href={url}
+                  className="social"
+                  aria-label={`${name} ${label}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {icon}
+                </a>
+              );
+            }
+
+            return (
+              <span
+                key={key}
+                className="social social-disabled"
+                aria-label={`${name} ${label} not provided`}
+                title={`${label} not provided`}
+              >
+                {icon}
+              </span>
+            );
+          })}
         </div>
       </div>
     </div>

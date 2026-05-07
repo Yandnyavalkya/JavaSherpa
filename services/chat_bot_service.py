@@ -448,57 +448,102 @@ class ChatBot:
             c.drawString(margin, y, 'Per-Question Analysis')
             y -= 25
 
-            c.setFont('Helvetica', 10)
+            # Table-style header for quick scan
+            table_width = width - 2 * margin
+            col_no = 40
+            col_score = 80
+            col_status = 120
+            col_question = table_width - (col_no + col_score + col_status)
+
+            def draw_table_header(current_y):
+                c.setFillColorRGB(0.93, 0.95, 0.98)
+                c.rect(margin, current_y - 16, table_width, 18, fill=1, stroke=0)
+                c.setFillColor(colors.black)
+                c.setFont('Helvetica-Bold', 9)
+                c.drawString(margin + 4, current_y - 12, "No.")
+                c.drawString(margin + col_no + 4, current_y - 12, "Score")
+                c.drawString(margin + col_no + col_score + 4, current_y - 12, "Status")
+                c.drawString(margin + col_no + col_score + col_status + 4, current_y - 12, "Question")
+                c.setStrokeColor(colors.lightgrey)
+                c.line(margin, current_y - 18, margin + table_width, current_y - 18)
+                c.setStrokeColor(colors.black)
+                return current_y - 24
+
+            y = draw_table_header(y)
             for idx, qa in enumerate(qa_pairs):
-                if y < margin + 100:
+                if y < margin + 140:
                     c.showPage()
                     y = height - margin
-                    c.setFont('Helvetica', 10)
-
-                # Question
-                c.setFont('Helvetica-Bold', 11)
-                question_text = f"Question {idx + 1}: {qa.get('question', 'N/A')}"
-                wrapped = simpleSplit(question_text, 'Helvetica-Bold', 11, width - 2*margin)
-                for line in wrapped:
-                    c.drawString(margin, y, line)
-                    y -= 14
-                y -= 5
-
-                # Answer
-                c.setFont('Helvetica', 10)
-                answer_text = f"Your Answer: {qa.get('answer', 'No answer provided')}"
-                wrapped = simpleSplit(answer_text, 'Helvetica', 10, width - 2*margin)
-                for line in wrapped:
-                    c.drawString(margin, y, line)
-                    y -= 12
-                y -= 5
+                    y = draw_table_header(y)
 
                 # Score
                 score = qa.get('score', 0)
-                score_text = f"Score: {score}/1.0"
+                status_text = "Excellent" if score >= 0.8 else "Good" if score >= 0.5 else "Needs Work"
+
+                # Row top line
+                c.setStrokeColor(colors.lightgrey)
+                c.line(margin, y + 2, margin + table_width, y + 2)
+                c.setStrokeColor(colors.black)
+
+                c.setFont('Helvetica', 9)
+                c.drawString(margin + 4, y - 10, str(idx + 1))
+
+                c.setFont('Helvetica-Bold', 9)
                 if score >= 0.8:
                     c.setFillColor(colors.green)
                 elif score >= 0.5:
                     c.setFillColor(colors.orange)
                 else:
                     c.setFillColor(colors.red)
-                c.setFont('Helvetica-Bold', 10)
-                c.drawString(margin, y, score_text)
+                c.drawString(margin + col_no + 4, y - 10, f"{score:.1f}/1.0")
+                c.drawString(margin + col_no + col_score + 4, y - 10, status_text)
                 c.setFillColor(colors.black)
-                y -= 15
+                c.setFont('Helvetica', 9)
+                question_preview = qa.get('question', 'N/A')
+                q_wrap = simpleSplit(question_preview, 'Helvetica', 9, col_question - 8)
+                c.drawString(margin + col_no + col_score + col_status + 4, y - 10, q_wrap[0] if q_wrap else "N/A")
+                y -= 18
 
-                # Feedback (truncated)
+                # Question + answer + feedback block under row (readable details)
+                c.setFont('Helvetica-Bold', 10)
+                c.drawString(margin + 8, y - 2, f"Question {idx + 1}:")
+                y -= 14
+
+                c.setFont('Helvetica', 9)
+                wrapped_question = simpleSplit(qa.get('question', 'N/A'), 'Helvetica', 9, width - 2 * margin - 16)
+                for line in wrapped_question:
+                    c.drawString(margin + 12, y, line)
+                    y -= 11
+
+                y -= 2
+                c.setFont('Helvetica-Bold', 10)
+                c.drawString(margin + 8, y, "Your Answer:")
+                y -= 12
+                c.setFont('Helvetica', 9)
+                wrapped_answer = simpleSplit(qa.get('answer', 'No answer provided'), 'Helvetica', 9, width - 2 * margin - 16)
+                for line in wrapped_answer:
+                    c.drawString(margin + 12, y, line)
+                    y -= 11
+
+                y -= 2
                 feedback = qa.get('ai_feedback', '')
                 if feedback and len(feedback) > 200:
                     feedback = feedback[:200] + "..."
                 if feedback:
+                    c.setFont('Helvetica-Bold', 10)
+                    c.drawString(margin + 8, y, "AI Feedback:")
+                    y -= 12
                     c.setFont('Helvetica', 9)
-                    feedback_text = f"Feedback: {feedback}"
-                    wrapped = simpleSplit(feedback_text, 'Helvetica', 9, width - 2*margin)
+                    wrapped = simpleSplit(feedback, 'Helvetica', 9, width - 2 * margin - 16)
                     for line in wrapped:
-                        c.drawString(margin, y, line)
+                        c.drawString(margin + 12, y, line)
                         y -= 11
-                y -= 15
+
+                y -= 10
+                c.setStrokeColor(colors.lightgrey)
+                c.line(margin, y, margin + table_width, y)
+                c.setStrokeColor(colors.black)
+                y -= 12
 
             # Interview Summary Section
             c.showPage()
@@ -511,24 +556,51 @@ class ChatBot:
             summary_text = pinecone_service.interview_summary.get(namespace_id, "")
             
             if summary_text:
-                # Remove markdown formatting for PDF
+                # Convert markdown-style summary into PDF-friendly lines while preserving structure
                 import re
-                # Remove markdown bold
-                summary_text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', summary_text)
-                # Remove markdown headers
-                summary_text = re.sub(r'^#{1,6}\s+', '', summary_text, flags=re.MULTILINE)
-                # Clean up extra newlines
-                summary_text = re.sub(r'\n{3,}', '\n\n', summary_text)
-                
+                summary_text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', summary_text)  # bold
+                summary_text = re.sub(r'^#{1,6}\s+', '', summary_text, flags=re.MULTILINE)  # headings
+                summary_text = summary_text.replace("\r\n", "\n")
+                summary_text = re.sub(r'\n{3,}', '\n\n', summary_text).strip()
+
+                lines = summary_text.split("\n")
                 c.setFont('Helvetica', 10)
-                wrapped = simpleSplit(summary_text, 'Helvetica', 10, width - 2*margin)
-                for line in wrapped:
-                    if y < margin + 60:
-                        c.showPage()
-                        y = height - margin
-                        c.setFont('Helvetica', 10)
-                    c.drawString(margin, y, line)
-                    y -= 14
+                for raw_line in lines:
+                    line = raw_line.rstrip()
+
+                    # Preserve paragraph spacing
+                    if not line.strip():
+                        y -= 8
+                        continue
+
+                    # Handle horizontal separators
+                    if line.strip() == "---":
+                        c.setStrokeColor(colors.lightgrey)
+                        c.line(margin, y, width - margin, y)
+                        c.setStrokeColor(colors.black)
+                        y -= 12
+                        continue
+
+                    # Keep nested bullet indentation in PDF
+                    draw_x = margin
+                    max_width = width - 2 * margin
+                    text_line = line
+                    if line.lstrip().startswith("- "):
+                        draw_x = margin + 8
+                        max_width = width - (margin + draw_x)
+                    elif line.lstrip().startswith("  - "):
+                        draw_x = margin + 20
+                        max_width = width - (margin + draw_x)
+                        text_line = line.strip()[2:]  # keep "- " but remove extra spaces
+
+                    wrapped = simpleSplit(text_line, 'Helvetica', 10, max_width)
+                    for wrapped_line in wrapped:
+                        if y < margin + 60:
+                            c.showPage()
+                            y = height - margin
+                            c.setFont('Helvetica', 10)
+                        c.drawString(draw_x, y, wrapped_line)
+                        y -= 14
             else:
                 # Fallback: Overall Analysis if summary not available
                 c.setFont('Helvetica-Bold', 14)

@@ -66,9 +66,6 @@ const Home = () => {
         <div className="home-cards-section">
           <div className="home-cards-grid">
             <div className="profile-card home-feature-card">
-              <div className="profile-photo home-feature-photo" aria-hidden="true">
-                <FaMicrophone />
-              </div>
               <div className="profile-body">
                 <div className="profile-role">Voice-Powered Practice</div>
                 <div className="profile-name">Speak like you mean it</div>
@@ -86,9 +83,6 @@ const Home = () => {
             </div>
 
             <div className="profile-card home-feature-card">
-              <div className="profile-photo home-feature-photo" aria-hidden="true">
-                <FaRobot />
-              </div>
               <div className="profile-body">
                 <div className="profile-role">AI Interview Agent</div>
                 <div className="profile-name">Get actionable feedback</div>
@@ -106,9 +100,6 @@ const Home = () => {
             </div>
 
             <div className="profile-card home-feature-card">
-              <div className="profile-photo home-feature-photo" aria-hidden="true">
-                <FaBook />
-              </div>
               <div className="profile-body">
                 <div className="profile-role">Comprehensive Prep</div>
                 <div className="profile-name">Learn patterns + best practices</div>
@@ -126,9 +117,6 @@ const Home = () => {
             </div>
 
             <div className="profile-card home-feature-card home-why-card">
-              <div className="profile-photo home-feature-photo" aria-hidden="true">
-                <FaStar />
-              </div>
               <div className="profile-body home-why-body">
                 <div className="profile-role">Why JavaSherpa?</div>
                 <div className="profile-name">Commit. Contribute. Grow.</div>

@@ -83,7 +83,9 @@ const SettingsModal = ({ show, onClose }) => {
               onChange={(e) => setVoice(e.target.value)}
             >
               <option value="female">Female</option>
+              <option value="female2">Female 2</option>
               <option value="male">Male</option>
+              <option value="male2">Male 2</option>
             </Form.Select>
           </Form.Group>
         </Form>
